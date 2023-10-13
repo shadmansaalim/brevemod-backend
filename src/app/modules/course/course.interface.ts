@@ -1,7 +1,9 @@
 //Imports
 import { Model } from "mongoose";
+import { Types } from "mongoose";
 
 export type ICourse = {
+  _id: Types.ObjectId;
   title: string;
   description: string;
   instructorName: string;

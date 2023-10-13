@@ -16,8 +16,15 @@ export type IUser = {
   email: string;
   password: string;
   passwordChangedAt?: Date;
-  cart?: ICourse[] | [];
-  purchase?: ICourse[] | [];
+  cart: {
+    courses: Types.ObjectId[] | ICourse[];
+    payment: {
+      subTotal: number;
+      tax: number;
+      grandTotal: number;
+    };
+  };
+  purchases: Types.ObjectId[] | ICourse[];
 };
 
 // User Model Type
