@@ -39,6 +39,20 @@ const userSchema = new Schema<IUser, UserModel>(
       unique: true,
       required: true,
     },
+    cart: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Course", // Reference to the Course model
+        default: [],
+      },
+    ],
+    purchase: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Course", // Reference to the Course model
+        default: [],
+      },
+    ],
   },
   {
     timestamps: true,

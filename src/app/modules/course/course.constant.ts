@@ -1,4 +1,4 @@
-const searchableFields = ["title"];
+const searchableFields = ["title", "description"];
 
 const filterableFields = ["searchTerm", "_id"];
 

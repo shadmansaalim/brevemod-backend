@@ -4,6 +4,7 @@
 import { Model } from "mongoose";
 import { ENUM_USER_ROLES } from "../../../enums/users";
 import { Types } from "mongoose";
+import { ICourse } from "../course/course.interface";
 
 // User Interface
 export type IUser = {
@@ -15,6 +16,8 @@ export type IUser = {
   email: string;
   password: string;
   passwordChangedAt?: Date;
+  cart?: ICourse[] | [];
+  purchase?: ICourse[] | [];
 };
 
 // User Model Type
