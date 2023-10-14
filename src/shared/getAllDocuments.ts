@@ -8,7 +8,7 @@ const getAllDocuments = async (
   paginationOptions: IPaginationOptions,
   searchableFields: string[],
   model: Model<any>,
-  fieldsToPopulate?: string[]
+  fieldsToPopulate?: any[]
 ) => {
   // Destructuring ~ Searching and Filtering
   const { searchTerm, ...filterData } = filters;

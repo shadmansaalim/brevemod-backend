@@ -35,3 +35,10 @@ export type UserModel = {
     savedPassword: string
   ): Promise<boolean>;
 } & Model<IUser>;
+
+// User Filters Type
+export type IUserFilters = {
+  searchTerm?: string | undefined;
+  _id?: string | undefined;
+  email?: string | undefined;
+};

@@ -5,6 +5,8 @@ import { CourseRoutes } from "../modules/course/course.route";
 import { IModuleRoute } from "./route.interface";
 import { CartRoutes } from "../modules/cart/cart.route";
 import { PurchaseRoutes } from "../modules/purchase/purchase.route";
+import { UserRoutes } from "../modules/user/user.route";
+import { ProfileRoutes } from "../modules/profile/profile.route";
 
 // Express router
 const router = express.Router();
@@ -15,6 +17,8 @@ const moduleRoutes: IModuleRoute[] = [
   { path: "/courses", route: CourseRoutes },
   { path: "/cart", route: CartRoutes },
   { path: "/purchases", route: PurchaseRoutes },
+  { path: "/users", route: UserRoutes },
+  { path: "/profile", route: ProfileRoutes },
 ];
 
 // Application Routes
