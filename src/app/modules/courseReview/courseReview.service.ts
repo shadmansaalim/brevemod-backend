@@ -44,8 +44,8 @@ const addReviewToCourse = async (
   }
 
   const userAlreadyReviewed = await CourseReview.findOne({
-    courseId,
-    userId: authUserId,
+    course: courseId,
+    user: authUserId,
   });
 
   // Throwing error if user already reviewed this course
@@ -67,8 +67,8 @@ const addReviewToCourse = async (
 
     // Add new review
     newReviewData = await CourseReview.create({
-      courseId,
-      userId: authUserId,
+      course: courseId,
+      user: authUserId,
       ...payload,
     });
 
@@ -101,10 +101,16 @@ const addReviewToCourse = async (
   return newReviewData;
 };
 
-// const getOneById = async (id: string): Promise<ICourse | null> => {
-//   return await Course.findOne({ _id: id });
-// };
+const getReviewsByCourse = async (
+  courseId: string
+): Promise<ICourseReview[]> => {
+  return await CourseReview.find({ course: courseId }).populate(
+    "user",
+    "firstName middleName lastName email"
+  );
+};
 
 export const CourseReviewService = {
   addReviewToCourse,
+  getReviewsByCourse,
 };

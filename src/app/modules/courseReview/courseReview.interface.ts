@@ -6,8 +6,8 @@ import { IUser } from "../user/user.interface";
 
 export type ICourseReview = {
   _id: Types.ObjectId;
-  courseId: Types.ObjectId | ICourse;
-  userId: Types.ObjectId | IUser;
+  course: Types.ObjectId | ICourse;
+  user: Types.ObjectId | IUser;
   rating: number;
   words: string;
 };

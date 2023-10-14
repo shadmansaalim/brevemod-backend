@@ -4,12 +4,12 @@ import { CourseReviewModel, ICourseReview } from "./courseReview.interface";
 
 const courseReviewSchema = new Schema<ICourseReview>(
   {
-    courseId: {
+    course: {
       type: Schema.Types.ObjectId,
       ref: "Course",
       required: true,
     },
-    userId: {
+    user: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,

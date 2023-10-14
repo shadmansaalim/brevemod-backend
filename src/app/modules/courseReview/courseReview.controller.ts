@@ -28,6 +28,19 @@ const addReviewToCourse = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getReviewsByCourse = catchAsync(async (req: Request, res: Response) => {
+  const { courseId } = req.params;
+  const result = await CourseReviewService.getReviewsByCourse(courseId);
+
+  sendResponse<ICourseReview[]>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Course Reviews retrieved successfully",
+    data: result,
+  });
+});
+
 export const CourseReviewController = {
   addReviewToCourse,
+  getReviewsByCourse,
 };
