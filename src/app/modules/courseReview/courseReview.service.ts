@@ -6,6 +6,7 @@ import ApiError from "../../../errors/ApiError";
 import httpStatus from "http-status";
 import { Course } from "../course/course.model";
 import { ICourseReview } from "./courseReview.interface";
+import { ICourse } from "../course/course.interface";
 
 const addReviewToCourse = async (
   courseId: string,
@@ -16,7 +17,7 @@ const addReviewToCourse = async (
   }
 ): Promise<ICourseReview> => {
   // Finding user
-  const user = await User.findOne({ _id: authUserId });
+  const user = await User.findOne({ _id: authUserId }).populate("purchases");
 
   // Throwing error if user does not exists
   if (!user) {
@@ -28,6 +29,31 @@ const addReviewToCourse = async (
   // Throwing error if course does not exists
   if (!course) {
     throw new ApiError(httpStatus.NOT_FOUND, "Course does not exists.");
+  }
+
+  const userPurchasedCourse = (user.purchases as ICourse[]).find(
+    (course) => course._id.toString() === courseId
+  );
+
+  // Throwing error if user tries to review a course which he didn't purchase
+  if (!userPurchasedCourse) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "You cannot review a course which you didn't purchase."
+    );
+  }
+
+  const userAlreadyReviewed = await CourseReview.findOne({
+    courseId,
+    userId: authUserId,
+  });
+
+  // Throwing error if user already reviewed this course
+  if (userAlreadyReviewed) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "You already gave your review for this course."
+    );
   }
 
   let newReviewData = null;
