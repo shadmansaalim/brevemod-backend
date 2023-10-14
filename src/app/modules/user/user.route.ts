@@ -4,6 +4,7 @@ import { ENUM_USER_ROLES } from "../../../enums/users";
 import authGuard from "../../middlewares/authGuard";
 import validateRequest from "../../middlewares/validateRequest";
 import { UserController } from "./user.controller";
+import { UserValidation } from "./user.validation";
 
 // Express router
 const router = express.Router();
@@ -24,6 +25,7 @@ router.get(
 router.patch(
   "/:id",
   authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  validateRequest(UserValidation.update),
   UserController.updateOneById
 );
 

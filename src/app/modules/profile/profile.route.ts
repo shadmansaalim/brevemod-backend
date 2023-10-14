@@ -2,6 +2,8 @@
 import express from "express";
 import { ENUM_USER_ROLES } from "../../../enums/users";
 import authGuard from "../../middlewares/authGuard";
+import validateRequest from "../../middlewares/validateRequest";
+import { UserValidation } from "../user/user.validation";
 import { ProfileController } from "./profile.controller";
 
 // Express router
@@ -25,6 +27,7 @@ router.patch(
     ENUM_USER_ROLES.ADMIN,
     ENUM_USER_ROLES.SUPER_ADMIN
   ),
+  validateRequest(UserValidation.update),
   ProfileController.updateOneById
 );
 
