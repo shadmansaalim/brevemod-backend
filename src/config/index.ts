@@ -16,4 +16,5 @@ export default {
     refresh_secret: process.env.JWT_REFRESH_SECRET,
     refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN,
   },
+  stripe__payment_secret: process.env.STRIPE_PAYMENT_SECRET,
 };

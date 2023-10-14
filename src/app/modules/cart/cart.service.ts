@@ -35,7 +35,7 @@ const addToCart = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Course does not exists.");
   }
 
-  // User
+  // User Cart
   const cart = user.cart;
 
   const courseAlreadyInCart = (cart.courses as ICourse[]).find((course) =>
@@ -44,6 +44,19 @@ const addToCart = async (
 
   if (courseAlreadyInCart) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Course already added in cart.");
+  }
+
+  // Finding course in user purchases
+  const checkAlreadyPurchased = (user.purchases as ICourse[]).find((course) =>
+    course._id.equals(courseId)
+  );
+
+  // Throwing error if user tries to purchase a course which he/she did already
+  if (checkAlreadyPurchased) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `You cannot add a course to cart that you already purchased once.`
+    );
   }
 
   // Storing new cart data
@@ -101,7 +114,7 @@ const removeFromCart = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Course does not exists.");
   }
 
-  // User
+  // User Cart
   const cart = user.cart;
 
   const courseExistsInCart = (cart.courses as ICourse[]).find((course) =>

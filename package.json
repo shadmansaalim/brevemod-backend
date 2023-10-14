@@ -45,6 +45,7 @@
     "http-status": "^1.6.2",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.6.1",
+    "stripe": "^13.10.0",
     "zod": "^3.21.4"
   }
 }
