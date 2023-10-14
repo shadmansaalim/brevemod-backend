@@ -38,6 +38,17 @@ const addToCart = async (
   // User
   const cart = user.cart;
 
+  const courseAlreadyInCart = (cart.courses as ICourse[]).find((course) =>
+    course._id.equals(courseId)
+  );
+
+  if (courseAlreadyInCart) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Course already added in cart.");
+  }
+
+  // Storing new cart data
+  cart.courses = [course, ...(cart.courses as ICourse[])];
+
   // Adding course price to subtotal
   cart.payment.subTotal += course.price;
 
@@ -47,9 +58,6 @@ const addToCart = async (
 
   // Calculating grand total
   cart.payment.grandTotal = cart.payment.subTotal + cart.payment.tax;
-
-  // Storing new cart data
-  cart.courses = [course, ...(cart.courses as ICourse[])];
 
   return await User.findOneAndUpdate(
     { _id: authUserId },
@@ -96,6 +104,22 @@ const removeFromCart = async (
   // User
   const cart = user.cart;
 
+  const courseExistsInCart = (cart.courses as ICourse[]).find((course) =>
+    course._id.equals(courseId)
+  );
+
+  if (!courseExistsInCart) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "Course is not in cart so nothing to remove."
+    );
+  }
+
+  // Const new courses in cart
+  const newCourses = (cart.courses as ICourse[]).filter(
+    (course) => !course._id.equals(courseId)
+  );
+
   // Removing course price from subtotal
   cart.payment.subTotal -= course.price;
 
@@ -105,11 +129,6 @@ const removeFromCart = async (
 
   // Calculating grand total
   cart.payment.grandTotal = cart.payment.subTotal + cart.payment.tax;
-
-  // Const new courses in cart
-  const newCourses = (cart.courses as ICourse[]).filter(
-    (course) => !course._id.equals(courseId)
-  );
 
   // Storing new cart data
   cart.courses = [...newCourses];
