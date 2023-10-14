@@ -16,8 +16,20 @@ const courseSchema = new Schema<ICourse>(
       type: String,
       required: true,
     },
+    totalRating: {
+      type: Number,
+      default: 0.0,
+      set: (value: number) => parseFloat(value.toFixed(1)),
+    },
+    ratingCount: {
+      type: Number,
+      default: 0.0,
+      set: (value: number) => parseFloat(value.toFixed(1)),
+    },
     avgRating: {
       type: Number,
+      default: 0.0,
+      set: (value: number) => parseFloat(value.toFixed(1)),
     },
     price: {
       type: Number,

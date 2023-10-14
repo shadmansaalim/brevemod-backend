@@ -7,6 +7,8 @@ export type ICourse = {
   title: string;
   description: string;
   instructorName: string;
+  totalRating: number;
+  ratingCount: number;
   avgRating?: number;
   price: number;
   thumbnailLink: string;
