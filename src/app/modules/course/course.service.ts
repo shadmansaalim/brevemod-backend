@@ -15,7 +15,7 @@ const getAllFromDb = async (
   filters: ICourseFilters,
   paginationOptions: IPaginationOptions
 ): Promise<IGenericResponse<ICourse[]>> => {
-  const { page, limit, total, result } = await getAllDocuments(
+  const { page, limit, total, totalPage, result } = await getAllDocuments(
     filters,
     paginationOptions,
     CourseConstants.searchableFields,
@@ -27,6 +27,7 @@ const getAllFromDb = async (
       page,
       limit,
       total,
+      totalPage,
     },
     data: result,
   };

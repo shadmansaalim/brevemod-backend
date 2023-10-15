@@ -1,3 +1,5 @@
+import { IUser } from "../user/user.interface";
+
 // Login User Service function arguments
 export type ILoginUser = {
   email: string;
@@ -8,6 +10,7 @@ export type ILoginUser = {
 export type ILoginUserResponse = {
   accessToken: string;
   refreshToken: string;
+  user: IUser;
 };
 
 // Refresh toke  Response type

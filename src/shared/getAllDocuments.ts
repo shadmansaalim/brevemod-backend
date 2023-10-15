@@ -75,10 +75,14 @@ const getAllDocuments = async (
   // Total Documents in Database matching the condition
   const total = await model.countDocuments(findConditions);
 
+  // Total page count
+  const totalPage = Math.ceil(total / limit);
+
   return {
     page,
     limit,
     total,
+    totalPage,
     result,
   };
 };

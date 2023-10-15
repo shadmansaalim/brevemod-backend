@@ -1,5 +1,5 @@
 // Imports
-import { SortOrder } from 'mongoose';
+import { SortOrder } from "mongoose";
 
 // Pagination Options Type
 export type IPaginationOptions = {
@@ -12,7 +12,7 @@ export type IPaginationOptions = {
 export type ICalculatePaginationResult = {
   page: number;
   limit: number;
-  sortBy: string;
-  sortOrder: SortOrder;
+  sortBy: string | undefined;
+  sortOrder: SortOrder | undefined;
   skip: number;
 };

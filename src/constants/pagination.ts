@@ -1,14 +1,14 @@
 // Imports
-import { SortOrder } from 'mongoose';
+import { SortOrder } from "mongoose";
 
 // Pagination  Fields
-const fields = ['page', 'limit', 'sortBy', 'sortOrder'];
+const fields = ["page", "limit", "sortBy", "sortOrder"];
 
 // Pagination Defaults
 const DEFAULT_PAGE = 1;
-const DEFAULT_LIMIT = 10;
-const DEFAULT_SORT_BY = 'createdAt';
-const DEFAULT_SORT_ORDER: SortOrder = 'desc';
+const DEFAULT_LIMIT = 8;
+const DEFAULT_SORT_BY = "createdAt";
+const DEFAULT_SORT_ORDER: SortOrder = "desc";
 
 export const PaginationConstants = {
   fields,

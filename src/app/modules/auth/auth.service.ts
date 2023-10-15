@@ -16,7 +16,7 @@ import { IUser } from "../user/user.interface";
 import { ENUM_USER_ROLES } from "../../../enums/users";
 
 // Sign up user function
-const signUpUser = async (payload: IUser): Promise<IUser> => {
+const signUpUser = async (payload: IUser): Promise<void> => {
   // Set user role by default its STUDENT for everyone who signs up
   payload.role = ENUM_USER_ROLES.STUDENT;
 
@@ -26,8 +26,6 @@ const signUpUser = async (payload: IUser): Promise<IUser> => {
   if (!newUser) {
     throw new ApiError(httpStatus.BAD_REQUEST, `Failed to create an user`);
   }
-
-  return newUser;
 };
 
 // LOGIN user function
@@ -71,9 +69,28 @@ const loginUser = async (payload: ILoginUser): Promise<ILoginUserResponse> => {
     config.jwt.refresh_expires_in as string
   );
 
+  const user = await User.findOne({ _id: id })
+    .populate({
+      path: "cart",
+      populate: [
+        {
+          path: "courses",
+        },
+      ],
+    })
+    .populate({
+      path: "purchases",
+    });
+
+  // Throwing error
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Failed to retrieve user data.");
+  }
+
   return {
     accessToken,
     refreshToken,
+    user,
   };
 };
 

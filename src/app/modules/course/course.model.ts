@@ -23,8 +23,7 @@ const courseSchema = new Schema<ICourse>(
     },
     ratingCount: {
       type: Number,
-      default: 0.0,
-      set: (value: number) => parseFloat(value.toFixed(1)),
+      default: 0,
     },
     avgRating: {
       type: Number,

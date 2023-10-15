@@ -10,7 +10,7 @@ const getAllFromDb = async (
   filters: IUserFilters,
   paginationOptions: IPaginationOptions
 ): Promise<IGenericResponse<IUser[]>> => {
-  const { page, limit, total, result } = await getAllDocuments(
+  const { page, limit, total, totalPage, result } = await getAllDocuments(
     filters,
     paginationOptions,
     UserConstants.searchableFields,
@@ -23,6 +23,7 @@ const getAllFromDb = async (
       page,
       limit,
       total,
+      totalPage,
     },
     data: result,
   };

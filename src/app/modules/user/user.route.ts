@@ -12,7 +12,11 @@ const router = express.Router();
 // API Endpoints
 router.get(
   "/:id",
-  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  authGuard(
+    ENUM_USER_ROLES.STUDENT,
+    ENUM_USER_ROLES.ADMIN,
+    ENUM_USER_ROLES.SUPER_ADMIN
+  ),
   UserController.getOneById
 );
 

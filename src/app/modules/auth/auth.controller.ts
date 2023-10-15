@@ -12,14 +12,13 @@ import { IUser } from "../user/user.interface";
 const signUpUser = catchAsync(async (req: Request, res: Response) => {
   // Getting user data
   const { ...userData } = req.body;
-  const result = await AuthService.signUpUser(userData);
+  await AuthService.signUpUser(userData);
 
   // Sending API Response
   sendResponse<IUser>(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "User signed up successfully.",
-    data: result,
   });
 });
 
@@ -40,7 +39,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
   res.cookie("refreshToken", refreshToken, cookieOptions);
 
   // Sending API Response
-  sendResponse<Pick<ILoginUserResponse, "accessToken">>(res, {
+  sendResponse<Pick<ILoginUserResponse, "accessToken" | "user">>(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "User logged in successfully.",
