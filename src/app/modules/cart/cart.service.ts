@@ -14,14 +14,18 @@ const addToCart = async (
   courseId: Types.ObjectId
 ): Promise<IUser | null> => {
   // Finding user
-  const user = await User.findOne({ _id: authUserId }).populate({
-    path: "cart",
-    populate: [
-      {
-        path: "courses",
-      },
-    ],
-  });
+  const user = await User.findOne({ _id: authUserId })
+    .populate({
+      path: "cart",
+      populate: [
+        {
+          path: "courses",
+        },
+      ],
+    })
+    .populate({
+      path: "purchases",
+    });
 
   // Throwing error if user does not exists
   if (!user) {
@@ -78,14 +82,18 @@ const addToCart = async (
     {
       new: true,
     }
-  ).populate({
-    path: "cart",
-    populate: [
-      {
-        path: "courses",
-      },
-    ],
-  });
+  )
+    .populate({
+      path: "cart",
+      populate: [
+        {
+          path: "courses",
+        },
+      ],
+    })
+    .populate({
+      path: "purchases",
+    });
 };
 
 const removeFromCart = async (
@@ -93,15 +101,18 @@ const removeFromCart = async (
   courseId: Types.ObjectId
 ): Promise<IUser | null> => {
   // Finding user
-  const user = await User.findOne({ _id: authUserId }).populate({
-    path: "cart",
-    populate: [
-      {
-        path: "courses",
-      },
-    ],
-  });
-
+  const user = await User.findOne({ _id: authUserId })
+    .populate({
+      path: "cart",
+      populate: [
+        {
+          path: "courses",
+        },
+      ],
+    })
+    .populate({
+      path: "purchases",
+    });
   // Throwing error if user does not exists
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User does not exists.");
@@ -152,14 +163,18 @@ const removeFromCart = async (
     {
       new: true,
     }
-  ).populate({
-    path: "cart",
-    populate: [
-      {
-        path: "courses",
-      },
-    ],
-  });
+  )
+    .populate({
+      path: "cart",
+      populate: [
+        {
+          path: "courses",
+        },
+      ],
+    })
+    .populate({
+      path: "purchases",
+    });
 };
 export const CartService = {
   addToCart,

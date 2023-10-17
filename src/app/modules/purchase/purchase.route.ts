@@ -9,6 +9,12 @@ const router = express.Router();
 
 // API Endpoints
 router.post(
+  "/create-payment-intent",
+  authGuard(ENUM_USER_ROLES.STUDENT),
+  PurchaseController.createPaymentIntent
+);
+
+router.post(
   "/",
   authGuard(ENUM_USER_ROLES.STUDENT),
   PurchaseController.purchaseCourse
