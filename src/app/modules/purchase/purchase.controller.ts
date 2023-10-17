@@ -34,7 +34,24 @@ const purchaseCourse = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const cancelEnrollment = catchAsync(async (req: Request, res: Response) => {
+  // Getting authenticated user from request
+  const user = (req as any).user;
+
+  const { courseId } = req.params;
+
+  const result = await PurchaseService.cancelEnrollment(user.id, courseId);
+
+  sendResponse<IUser>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Courses enrollment cancelled successfully.",
+    data: result,
+  });
+});
+
 export const PurchaseController = {
   createPaymentIntent,
   purchaseCourse,
+  cancelEnrollment,
 };

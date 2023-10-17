@@ -6,6 +6,8 @@ import httpStatus from "http-status";
 import { PaymentHelpers } from "../../../helpers/paymentHelper";
 import { currency, payment_method_types } from "../../../constants/common";
 import { IUser } from "../user/user.interface";
+import { Course } from "../course/course.model";
+import { ICourse } from "../course/course.interface";
 
 const createPaymentIntent = async (
   authUserId: string
@@ -131,7 +133,82 @@ const purchaseCourse = async (authUserId: string): Promise<IUser | null> => {
     });
 };
 
+// Function to cancel user course enrollment
+const cancelEnrollment = async (
+  authUserId: string,
+  courseId: string
+): Promise<IUser | null> => {
+  // Finding user
+  const user = await User.findOne({ _id: authUserId })
+    .populate({
+      path: "cart",
+      populate: [
+        {
+          path: "courses",
+        },
+      ],
+    })
+    .populate({
+      path: "purchases",
+    });
+
+  // Throwing error if user does not exists
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User does not exists.");
+  }
+
+  const course = await Course.findOne({ _id: courseId });
+
+  // Throwing error if course does not exists
+  if (!course) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Course does not exists.");
+  }
+
+  // User purchases
+  const purchases = user.purchases;
+
+  const isPurchased = (purchases as ICourse[]).find((course) =>
+    course._id.equals(courseId)
+  );
+
+  // Throwing error if user didn't purchase the course which he is trying to cancel
+
+  if (!isPurchased) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `You didn't purchase the course that you are trying to cancel.`
+    );
+  }
+
+  // Removing the course from purchases
+  const newPurchases = (purchases as ICourse[]).filter(
+    (course) => !course._id.equals(courseId)
+  );
+
+  // Updated data
+  const updatedData = {
+    purchases: [...newPurchases],
+  };
+
+  // Updating user purchases data
+  return await User.findOneAndUpdate({ _id: authUserId }, updatedData, {
+    new: true,
+  })
+    .populate({
+      path: "cart",
+      populate: [
+        {
+          path: "courses",
+        },
+      ],
+    })
+    .populate({
+      path: "purchases",
+    });
+};
+
 export const PurchaseService = {
   createPaymentIntent,
   purchaseCourse,
+  cancelEnrollment,
 };

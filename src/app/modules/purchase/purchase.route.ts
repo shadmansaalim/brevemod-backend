@@ -20,4 +20,10 @@ router.post(
   PurchaseController.purchaseCourse
 );
 
+router.delete(
+  "/cancel-enrollment/:courseId",
+  authGuard(ENUM_USER_ROLES.STUDENT),
+  PurchaseController.cancelEnrollment
+);
+
 export const PurchaseRoutes = router;
