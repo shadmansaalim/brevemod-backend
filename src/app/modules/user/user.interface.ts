@@ -25,6 +25,7 @@ export type IUser = {
     };
   };
   purchases: Types.ObjectId[] | ICourse[];
+  feedback?: string;
 };
 
 // User Model Type

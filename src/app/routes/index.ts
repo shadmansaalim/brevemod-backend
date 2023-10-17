@@ -8,6 +8,7 @@ import { PurchaseRoutes } from "../modules/purchase/purchase.route";
 import { UserRoutes } from "../modules/user/user.route";
 import { ProfileRoutes } from "../modules/profile/profile.route";
 import { CourseReviewRoutes } from "../modules/courseReview/courseReview.route";
+import { FeedbackRoutes } from "../modules/feedback/feedback.route";
 
 // Express router
 const router = express.Router();
@@ -21,6 +22,7 @@ const moduleRoutes: IModuleRoute[] = [
   { path: "/users", route: UserRoutes },
   { path: "/profile", route: ProfileRoutes },
   { path: "/course-reviews", route: CourseReviewRoutes },
+  { path: "/feedbacks", route: FeedbackRoutes },
 ];
 
 // Application Routes
