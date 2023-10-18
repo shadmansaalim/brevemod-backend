@@ -10,11 +10,29 @@ import { FeedbackValidation } from "./feedback.validation";
 const router = express.Router();
 
 // API Endpoints
+router.get(
+  "/:id",
+  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  FeedbackController.getOneById
+);
+
+router.get(
+  "/",
+  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  FeedbackController.getAllFromDb
+);
+
 router.post(
   "/",
   authGuard(ENUM_USER_ROLES.STUDENT),
   validateRequest(FeedbackValidation.create),
-  FeedbackController.addUserFeedback
+  FeedbackController.insertIntoDb
+);
+
+router.delete(
+  "/:id",
+  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  FeedbackController.deleteOneById
 );
 
 export const FeedbackRoutes = router;

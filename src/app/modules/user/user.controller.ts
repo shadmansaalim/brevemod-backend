@@ -43,7 +43,6 @@ const updateOneById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
   const updatedData = req.body;
-
   const result = await UserService.updateOneById(id, updatedData);
 
   sendResponse<IUser>(res, {
