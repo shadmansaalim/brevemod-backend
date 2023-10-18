@@ -5,7 +5,7 @@ const filterableFields = ["searchTerm", "user"];
 const fieldsToPopulate = [
   {
     path: "user",
-    select: "firstName middleName lastName email",
+    select: "_id firstName middleName lastName email",
   },
 ];
 

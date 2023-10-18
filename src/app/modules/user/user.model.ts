@@ -72,9 +72,6 @@ const userSchema = new Schema<IUser, UserModel>(
         default: [],
       },
     ],
-    feedback: {
-      type: String,
-    },
   },
   {
     timestamps: true,

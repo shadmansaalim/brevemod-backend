@@ -53,6 +53,22 @@ const getOneById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getCurrentUserFeedback = catchAsync(
+  async (req: Request, res: Response) => {
+    // Getting authenticated user from request
+    const user = (req as any).user;
+
+    const result = await FeedbackService.getCurrentUserFeedback(user.id);
+
+    sendResponse<IFeedback>(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Your feedback retrieved successfully",
+      data: result,
+    });
+  }
+);
+
 const deleteOneById = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
 
@@ -70,5 +86,6 @@ export const FeedbackController = {
   insertIntoDb,
   getAllFromDb,
   getOneById,
+  getCurrentUserFeedback,
   deleteOneById,
 };

@@ -12,7 +12,12 @@ const insertIntoDb = async (
   payload: IFeedback
 ): Promise<IFeedback> => {
   payload.user = new Types.ObjectId(authUserId);
-  return await Feedback.create(payload);
+  return await (
+    await Feedback.create(payload)
+  ).populate({
+    path: "user",
+    select: "_id firstName middleName lastName email",
+  });
 };
 
 const getAllFromDb = async (
@@ -39,16 +44,32 @@ const getAllFromDb = async (
 };
 
 const getOneById = async (id: string): Promise<IFeedback | null> => {
-  return await Feedback.findOne({ _id: id });
+  return await Feedback.findOne({ _id: id }).populate({
+    path: "user",
+    select: "_id firstName middleName lastName email",
+  });
+};
+
+const getCurrentUserFeedback = async (
+  authUserId: string
+): Promise<IFeedback | null> => {
+  return await Feedback.findOne({ user: authUserId }).populate({
+    path: "user",
+    select: "_id firstName middleName lastName email",
+  });
 };
 
 const deleteOneById = async (id: string): Promise<IFeedback | null> => {
-  return await Feedback.findOneAndDelete({ _id: id });
+  return await Feedback.findOneAndDelete({ _id: id }).populate({
+    path: "user",
+    select: "_id firstName middleName lastName email",
+  });
 };
 
 export const FeedbackService = {
   insertIntoDb,
   getAllFromDb,
   getOneById,
+  getCurrentUserFeedback,
   deleteOneById,
 };

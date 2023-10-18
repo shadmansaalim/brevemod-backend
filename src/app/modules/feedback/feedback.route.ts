@@ -11,6 +11,12 @@ const router = express.Router();
 
 // API Endpoints
 router.get(
+  "/current-user",
+  authGuard(ENUM_USER_ROLES.STUDENT),
+  FeedbackController.getCurrentUserFeedback
+);
+
+router.get(
   "/:id",
   authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
   FeedbackController.getOneById
