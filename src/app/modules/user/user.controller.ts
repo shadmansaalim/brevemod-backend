@@ -10,12 +10,34 @@ import { UserService } from "./user.service";
 import { IUser } from "./user.interface";
 import { ENUM_USER_ROLES } from "../../../enums/users";
 
+const insertIntoDb = catchAsync(async (req: Request, res: Response) => {
+  // Getting user data
+  const { ...userData } = req.body;
+
+  const result = await UserService.insertIntoDb(userData);
+
+  // Sending API Response
+  sendResponse<IUser>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User created successfully.",
+    data: result,
+  });
+});
+
 const getAllFromDb = catchAsync(async (req: Request, res: Response) => {
+  // Getting authenticated user from request
+  const user = (req as any).user;
+
   const filters = pick(req.query, UserConstants.filterableFields);
 
   const paginationOptions = pick(req.query, PaginationConstants.fields);
 
-  const result = await UserService.getAllFromDb(filters, paginationOptions);
+  const result = await UserService.getAllFromDb(
+    user.id,
+    filters,
+    paginationOptions
+  );
 
   sendResponse<IUser[]>(res, {
     statusCode: httpStatus.OK,
@@ -67,6 +89,7 @@ const deleteOneById = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const UserController = {
+  insertIntoDb,
   getAllFromDb,
   getOneById,
   updateOneById,

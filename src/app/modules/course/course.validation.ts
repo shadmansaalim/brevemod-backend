@@ -35,13 +35,11 @@ const update = z.object({
     title: z.string().optional(),
     description: z.string().optional(),
     instructorName: z.string().optional(),
-    avgRating: z.number().optional(),
     price: z.number().optional(),
     thumbnailLink: z.string().optional(),
     introVideoLink: z.string().optional(),
     lecturesCount: z.number().optional(),
     projectsCount: z.number().optional(),
-    studentsCount: z.number().optional(),
   }),
 });
 
