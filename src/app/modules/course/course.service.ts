@@ -8,7 +8,7 @@ import { Course } from "./course.model";
 import { CourseConstants } from "./course.constant";
 import { Types } from "mongoose";
 import { User } from "../user/user.model";
-import { mongoose } from "mongoose";
+import mongoose from "mongoose";
 import { CourseReview } from "../courseReview/courseReview.model";
 
 const insertIntoDb = async (payload: ICourse): Promise<ICourse> => {
@@ -51,8 +51,6 @@ const updateOneById = async (
 };
 
 const deleteOneById = async (id: string): Promise<ICourse | null> => {
-  // return await Course.findOneAndDelete({ _id: id });
-
   // Finding users those who purchased the course
   const studentsOfThisCourse = await User.find(
     { purchases: { $elemMatch: { $eq: new Types.ObjectId(id) } } },

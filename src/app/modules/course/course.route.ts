@@ -16,16 +16,22 @@ router.get("/", CourseController.getAllFromDb);
 
 router.post(
   "/",
+  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
   validateRequest(CourseValidation.create),
   CourseController.insertIntoDb
 );
 
 router.patch(
   "/:id",
+  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
   validateRequest(CourseValidation.update),
   CourseController.updateOneById
 );
 
-router.delete("/:id", CourseController.deleteOneById);
+router.delete(
+  "/:id",
+  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  CourseController.deleteOneById
+);
 
 export const CourseRoutes = router;
