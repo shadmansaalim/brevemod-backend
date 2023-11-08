@@ -8,6 +8,13 @@ import { PurchaseController } from "./purchase.controller";
 const router = express.Router();
 
 // API Endpoints
+
+router.get(
+  "/my-courses",
+  authGuard(ENUM_USER_ROLES.STUDENT),
+  PurchaseController.getMyCourses
+);
+
 router.post(
   "/create-payment-intent",
   authGuard(ENUM_USER_ROLES.STUDENT),

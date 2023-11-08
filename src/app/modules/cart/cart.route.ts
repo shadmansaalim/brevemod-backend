@@ -8,6 +8,8 @@ import { CartController } from "./cart.controller";
 const router = express.Router();
 
 // API Endpoints
+router.get("/", authGuard(ENUM_USER_ROLES.STUDENT), CartController.getUserCart);
+
 router.patch(
   "/add-to-cart/:courseId",
   authGuard(ENUM_USER_ROLES.STUDENT),

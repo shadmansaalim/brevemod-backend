@@ -1,35 +1,36 @@
 // Imports
 
 import ApiError from "../../../errors/ApiError";
-import { User } from "../user/user.model";
 import httpStatus from "http-status";
 import { Course } from "../course/course.model";
 import { tax_course_purchase } from "../../../constants/common";
-import { IUser } from "../user/user.interface";
 import { Types } from "mongoose";
-import { ICourse } from "../course/course.interface";
+import { Cart } from "./cart.model";
+import { Purchase } from "../purchase/purchase.model";
+import { ICart } from "./cart.interface";
+
+const getUserCart = async (authUserId: string): Promise<ICart | null> => {
+  // Finding cart
+  const cart = await Cart.findOne({ user: authUserId });
+
+  // Throwing error if cart does not exists
+  if (!cart) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User cart does not exists.");
+  }
+
+  return cart;
+};
 
 const addToCart = async (
   authUserId: string,
   courseId: Types.ObjectId
-): Promise<IUser | null> => {
-  // Finding user
-  const user = await User.findOne({ _id: authUserId })
-    .populate({
-      path: "cart",
-      populate: [
-        {
-          path: "courses",
-        },
-      ],
-    })
-    .populate({
-      path: "purchases",
-    });
+): Promise<ICart | null> => {
+  // Finding cart
+  const cart = await Cart.findOne({ user: authUserId });
 
-  // Throwing error if user does not exists
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User does not exists.");
+  // Throwing error if cart does not exists
+  if (!cart) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User cart does not exists.");
   }
 
   const course = await Course.findOne({ _id: courseId });
@@ -39,10 +40,7 @@ const addToCart = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Course does not exists.");
   }
 
-  // User Cart
-  const cart = user.cart;
-
-  const courseAlreadyInCart = (cart.courses as ICourse[]).find((course) =>
+  const courseAlreadyInCart = cart.courses.find((course) =>
     course._id.equals(courseId)
   );
 
@@ -50,21 +48,26 @@ const addToCart = async (
     throw new ApiError(httpStatus.BAD_REQUEST, "Course already added in cart.");
   }
 
-  // Finding course in user purchases
-  const checkAlreadyPurchased = (user.purchases as ICourse[]).find((course) =>
-    course._id.equals(courseId)
-  );
+  // Finding User Purchases
+  const userPurchases = await Purchase.findOne({ user: authUserId });
 
-  // Throwing error if user tries to purchase a course which he/she did already
-  if (checkAlreadyPurchased) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      `You cannot add a course to cart that you already purchased once.`
-    );
+  if (userPurchases) {
+    // Finding course in user purchases
+    const checkAlreadyPurchased = (
+      userPurchases.courses as Types.ObjectId[]
+    ).find((course) => course._id.equals(courseId));
+
+    // Throwing error if user tries to purchase a course which he/she did already
+    if (checkAlreadyPurchased) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `You cannot add a course to cart that you already purchased once.`
+      );
+    }
   }
 
   // Storing new cart data
-  cart.courses = [course, ...(cart.courses as ICourse[])];
+  cart.courses = [courseId, ...cart.courses];
 
   // Adding course price to subtotal
   cart.payment.subTotal += course.price;
@@ -76,46 +79,21 @@ const addToCart = async (
   // Calculating grand total
   cart.payment.grandTotal = cart.payment.subTotal + cart.payment.tax;
 
-  return await User.findOneAndUpdate(
-    { _id: authUserId },
-    { cart },
-    {
-      new: true,
-    }
-  )
-    .populate({
-      path: "cart",
-      populate: [
-        {
-          path: "courses",
-        },
-      ],
-    })
-    .populate({
-      path: "purchases",
-    });
+  return await Cart.findOneAndUpdate({ user: authUserId }, cart, {
+    new: true,
+  });
 };
 
 const removeFromCart = async (
   authUserId: string,
   courseId: Types.ObjectId
-): Promise<IUser | null> => {
-  // Finding user
-  const user = await User.findOne({ _id: authUserId })
-    .populate({
-      path: "cart",
-      populate: [
-        {
-          path: "courses",
-        },
-      ],
-    })
-    .populate({
-      path: "purchases",
-    });
-  // Throwing error if user does not exists
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User does not exists.");
+): Promise<ICart | null> => {
+  // Finding cart
+  const cart = await Cart.findOne({ user: authUserId });
+
+  // Throwing error if cart does not exists
+  if (!cart) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User cart does not exists.");
   }
 
   const course = await Course.findOne({ _id: courseId });
@@ -125,10 +103,7 @@ const removeFromCart = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Course does not exists.");
   }
 
-  // User Cart
-  const cart = user.cart;
-
-  const courseExistsInCart = (cart.courses as ICourse[]).find((course) =>
+  const courseExistsInCart = cart.courses.find((course) =>
     course._id.equals(courseId)
   );
 
@@ -140,7 +115,7 @@ const removeFromCart = async (
   }
 
   // Const new courses in cart
-  const newCourses = (cart.courses as ICourse[]).filter(
+  const newCourses = cart.courses.filter(
     (course) => !course._id.equals(courseId)
   );
 
@@ -157,26 +132,12 @@ const removeFromCart = async (
   // Storing new cart data
   cart.courses = [...newCourses];
 
-  return await User.findOneAndUpdate(
-    { _id: authUserId },
-    { cart },
-    {
-      new: true,
-    }
-  )
-    .populate({
-      path: "cart",
-      populate: [
-        {
-          path: "courses",
-        },
-      ],
-    })
-    .populate({
-      path: "purchases",
-    });
+  return await Cart.findOneAndUpdate({ user: authUserId }, cart, {
+    new: true,
+  });
 };
 export const CartService = {
+  getUserCart,
   addToCart,
   removeFromCart,
 };

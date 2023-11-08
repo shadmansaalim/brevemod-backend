@@ -1,6 +1,6 @@
 const searchableFields = ["title", "description"];
 
-const filterableFields = ["searchTerm", "_id"];
+const filterableFields = ["searchTerm", "_id", "user"];
 
 export const CourseConstants = {
   searchableFields,

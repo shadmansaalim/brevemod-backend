@@ -8,30 +8,48 @@ import { currency, payment_method_types } from "../../../constants/common";
 import { IUser } from "../user/user.interface";
 import { Course } from "../course/course.model";
 import { ICourse } from "../course/course.interface";
+import { Cart } from "../cart/cart.model";
+import { Purchase } from "./purchase.model";
+import mongoose from "mongoose";
+import { IPurchase } from "./purchase.interface";
+import { Types } from "mongoose";
 
-const createPaymentIntent = async (
-  authUserId: string
-): Promise<{ clientSecret: string }> => {
+const getMyCourses = async (authUserId: string): Promise<ICourse[]> => {
   // Finding user
-  const user = await User.findOne({ _id: authUserId })
-    .populate({
-      path: "cart",
-      populate: [
-        {
-          path: "courses",
-        },
-      ],
-    })
-    .populate({
-      path: "purchases",
-    });
+  const user = await User.findOne({ _id: authUserId });
 
   // Throwing error if user does not exists
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User does not exists.");
   }
 
-  if (!user.cart.courses.length) {
+  // Finding User Purchases
+  const userPurchases = await Purchase.findOne({ user: authUserId }).populate(
+    "courses"
+  );
+
+  // Throwing error if user does not exists
+  if (!userPurchases) {
+    throw new ApiError(httpStatus.NOT_FOUND, "You have no purchased courses.");
+  }
+
+  const myCourses = userPurchases.courses as ICourse[];
+
+  return myCourses;
+};
+
+const createPaymentIntent = async (
+  authUserId: string
+): Promise<{ clientSecret: string }> => {
+  // Finding user cart
+  const cart = await Cart.findOne({ user: authUserId });
+
+  // Throwing error if user cart does not exists
+  if (!cart) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User cart does not exists.");
+  }
+
+  if (!cart.courses.length) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       "Cart is empty nothing to pay for."
@@ -40,7 +58,7 @@ const createPaymentIntent = async (
 
   // Getting the payment amount for stripe purchasing course
   const amount = PaymentHelpers.getPaymentAmountForStripe(
-    user.cart.payment.grandTotal
+    cart.payment.grandTotal
   );
 
   //Creating Payment intent
@@ -56,28 +74,16 @@ const createPaymentIntent = async (
 };
 
 // Function to purchase course
-const purchaseCourse = async (authUserId: string): Promise<IUser | null> => {
-  // Finding user
-  const user = await User.findOne({ _id: authUserId })
-    .populate({
-      path: "cart",
-      populate: [
-        {
-          path: "courses",
-        },
-      ],
-    })
-    .populate({
-      path: "purchases",
-    });
+const purchaseCourse = async (
+  authUserId: string
+): Promise<IPurchase | null> => {
+  // Finding cart
+  const cart = await Cart.findOne({ user: authUserId });
 
-  // Throwing error if user does not exists
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User does not exists.");
+  // Throwing error if user cart does not exists
+  if (!cart) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User cart does not exists.");
   }
-
-  // User Cart
-  const cart = user.cart;
 
   if (!cart.courses.length) {
     throw new ApiError(
@@ -86,13 +92,20 @@ const purchaseCourse = async (authUserId: string): Promise<IUser | null> => {
     );
   }
 
-  // Extract "_id" values from the objects in each array
-  const cartCoursesIds = cart.courses.map((obj) => obj._id.toString());
-  const purchaseCoursesIds = user.purchases.map((obj) => obj._id.toString());
+  // Finding User Purchases
+  const userPurchases = await Purchase.findOne({ user: authUserId });
 
-  // Check if there are common "_id" values between the two arrays
-  const checkAlreadyPurchased = cartCoursesIds.filter((id) =>
-    purchaseCoursesIds.includes(id)
+  // Throwing error if user purchases does not exists
+  if (!userPurchases) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      "User purchases data does not exists."
+    );
+  }
+
+  // Check if course already purchased
+  const checkAlreadyPurchased = cart.courses.filter((id) =>
+    (userPurchases.courses as Types.ObjectId[]).includes(id)
   );
 
   // Throwing error if user tries to purchase a course which he/she did already
@@ -103,34 +116,73 @@ const purchaseCourse = async (authUserId: string): Promise<IUser | null> => {
     );
   }
 
-  // Updated data, resetting cart and adding purchases data
-  const updatedData = {
-    cart: {
+  let newPurchaseData = null;
+
+  // Mongoose session started
+  const session = await mongoose.startSession();
+
+  try {
+    // Starting Transaction
+    session.startTransaction();
+
+    // Adding courses to purchase list
+    userPurchases.courses = [
+      ...cart.courses,
+      ...(userPurchases.courses as Types.ObjectId[]),
+    ];
+    newPurchaseData = await Purchase.findOneAndUpdate(
+      { user: authUserId },
+      userPurchases,
+      {
+        new: true,
+      }
+    );
+
+    // Throwing error if fails to update purchase data
+    if (!newPurchaseData) {
+      throw new ApiError(httpStatus.BAD_REQUEST, `Failed to purchase courses.`);
+    }
+
+    // Resetting user cart
+    const userUpdatedCart = {
+      user: authUserId,
       courses: [],
       payment: {
         subTotal: 0.0,
         tax: 0.0,
         grandTotal: 0.0,
       },
-    },
-    purchases: [...cart.courses, ...user.purchases],
-  };
+    };
 
-  // Updating user purchases data
-  return await User.findOneAndUpdate({ _id: authUserId }, updatedData, {
-    new: true,
-  })
-    .populate({
-      path: "cart",
-      populate: [
-        {
-          path: "courses",
-        },
-      ],
-    })
-    .populate({
-      path: "purchases",
-    });
+    const resetCart = await Cart.findOneAndUpdate(
+      { user: authUserId },
+      userUpdatedCart,
+      {
+        new: true,
+      }
+    );
+
+    // Throwing error if fails
+    if (!resetCart) {
+      throw new ApiError(httpStatus.BAD_REQUEST, `Failed to purchase courses.`);
+    }
+
+    // Committing Transaction
+    await session.commitTransaction();
+
+    // Ending Session
+    await session.endSession();
+  } catch (error) {
+    // Aborting Transaction because of error
+    await session.abortTransaction();
+    // Ending Session because of error
+    await session.endSession();
+
+    // Throwing error
+    throw error;
+  }
+
+  return newPurchaseData;
 };
 
 // Function to cancel user course enrollment
@@ -139,18 +191,7 @@ const cancelEnrollment = async (
   courseId: string
 ): Promise<IUser | null> => {
   // Finding user
-  const user = await User.findOne({ _id: authUserId })
-    .populate({
-      path: "cart",
-      populate: [
-        {
-          path: "courses",
-        },
-      ],
-    })
-    .populate({
-      path: "purchases",
-    });
+  const user = await User.findOne({ _id: authUserId });
 
   // Throwing error if user does not exists
   if (!user) {
@@ -193,21 +234,11 @@ const cancelEnrollment = async (
   // Updating user purchases data
   return await User.findOneAndUpdate({ _id: authUserId }, updatedData, {
     new: true,
-  })
-    .populate({
-      path: "cart",
-      populate: [
-        {
-          path: "courses",
-        },
-      ],
-    })
-    .populate({
-      path: "purchases",
-    });
+  });
 };
 
 export const PurchaseService = {
+  getMyCourses,
   createPaymentIntent,
   purchaseCourse,
   cancelEnrollment,

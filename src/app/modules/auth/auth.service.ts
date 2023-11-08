@@ -14,18 +14,14 @@ import { Secret } from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
 import { IUser } from "../user/user.interface";
 import { ENUM_USER_ROLES } from "../../../enums/users";
+import { UserService } from "../user/user.service";
 
 // Sign up user function
 const signUpUser = async (payload: IUser): Promise<void> => {
   // Set user role by default its STUDENT for everyone who signs up
   payload.role = ENUM_USER_ROLES.STUDENT;
 
-  const newUser = await User.create(payload);
-
-  // Throwing error if fails to create user
-  if (!newUser) {
-    throw new ApiError(httpStatus.BAD_REQUEST, `Failed to create an user`);
-  }
+  await UserService.insertIntoDb(payload);
 };
 
 // LOGIN user function
@@ -69,18 +65,7 @@ const loginUser = async (payload: ILoginUser): Promise<ILoginUserResponse> => {
     config.jwt.refresh_expires_in as string
   );
 
-  const user = await User.findOne({ _id: id })
-    .populate({
-      path: "cart",
-      populate: [
-        {
-          path: "courses",
-        },
-      ],
-    })
-    .populate({
-      path: "purchases",
-    });
+  const user = await User.findOne({ _id: id });
 
   // Throwing error
   if (!user) {

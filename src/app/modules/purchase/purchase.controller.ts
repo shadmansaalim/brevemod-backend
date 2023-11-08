@@ -4,7 +4,23 @@ import httpStatus from "http-status";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { IUser } from "../user/user.interface";
+import { IPurchase } from "./purchase.interface";
 import { PurchaseService } from "./purchase.service";
+import { ICourse } from "../course/course.interface";
+
+const getMyCourses = catchAsync(async (req: Request, res: Response) => {
+  // Getting authenticated user from request
+  const user = (req as any).user;
+
+  const result = await PurchaseService.getMyCourses(user.id);
+
+  sendResponse<ICourse[]>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "My courses retrieved successfully.",
+    data: result,
+  });
+});
 
 const createPaymentIntent = catchAsync(async (req: Request, res: Response) => {
   // Getting authenticated user from request
@@ -26,7 +42,7 @@ const purchaseCourse = catchAsync(async (req: Request, res: Response) => {
 
   const result = await PurchaseService.purchaseCourse(user.id);
 
-  sendResponse<IUser>(res, {
+  sendResponse<IPurchase>(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Courses purchased successfully.",
@@ -51,6 +67,7 @@ const cancelEnrollment = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const PurchaseController = {
+  getMyCourses,
   createPaymentIntent,
   purchaseCourse,
   cancelEnrollment,

@@ -17,7 +17,7 @@ const addReviewToCourse = async (
   }
 ): Promise<ICourseReview> => {
   // Finding user
-  const user = await User.findOne({ _id: authUserId }).populate("purchases");
+  const user = await User.findOne({ _id: authUserId });
 
   // Throwing error if user does not exists
   if (!user) {
