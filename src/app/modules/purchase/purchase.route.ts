@@ -15,6 +15,12 @@ router.get(
   PurchaseController.getMyCourses
 );
 
+router.get(
+  "/status/:courseId",
+  authGuard(ENUM_USER_ROLES.STUDENT),
+  PurchaseController.getIsCoursePurchased
+);
+
 router.post(
   "/create-payment-intent",
   authGuard(ENUM_USER_ROLES.STUDENT),

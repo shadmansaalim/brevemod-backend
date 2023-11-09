@@ -22,6 +22,21 @@ const getMyCourses = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getIsCoursePurchased = catchAsync(async (req: Request, res: Response) => {
+  // Getting authenticated user from request
+  const user = (req as any).user;
+  const { courseId } = req.params;
+
+  const result = await PurchaseService.getIsCoursePurchased(user.id, courseId);
+
+  sendResponse<boolean>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Course purchase status retrieved successfully.",
+    data: result,
+  });
+});
+
 const createPaymentIntent = catchAsync(async (req: Request, res: Response) => {
   // Getting authenticated user from request
   const user = (req as any).user;
@@ -67,6 +82,7 @@ const cancelEnrollment = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const PurchaseController = {
+  getIsCoursePurchased,
   getMyCourses,
   createPaymentIntent,
   purchaseCourse,

@@ -38,6 +38,38 @@ const getMyCourses = async (authUserId: string): Promise<ICourse[]> => {
   return myCourses;
 };
 
+const getIsCoursePurchased = async (
+  authUserId: string,
+  courseId: string
+): Promise<boolean> => {
+  // Finding user
+  const user = await User.findOne({ _id: authUserId });
+
+  // Throwing error if user does not exists
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User does not exists.");
+  }
+
+  const course = await Course.findOne({ _id: courseId });
+
+  // Throwing error if course does not exists
+  if (!course) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Course does not exists.");
+  }
+
+  // Finding is course purchased
+  const isPurchased = await Purchase.findOne({
+    user: authUserId,
+    courses: { $elemMatch: { $eq: courseId } },
+  });
+
+  if (isPurchased) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
 const createPaymentIntent = async (
   authUserId: string
 ): Promise<{ clientSecret: string }> => {
@@ -58,7 +90,7 @@ const createPaymentIntent = async (
 
   // Getting the payment amount for stripe purchasing course
   const amount = PaymentHelpers.getPaymentAmountForStripe(
-    cart.payment.grandTotal
+    Math.round(cart.payment.grandTotal)
   );
 
   //Creating Payment intent
@@ -239,6 +271,7 @@ const cancelEnrollment = async (
 
 export const PurchaseService = {
   getMyCourses,
+  getIsCoursePurchased,
   createPaymentIntent,
   purchaseCourse,
   cancelEnrollment,

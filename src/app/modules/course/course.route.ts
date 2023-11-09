@@ -10,7 +10,7 @@ import { CourseValidation } from "./course.validation";
 const router = express.Router();
 
 // API Endpoints
-router.get("/:id", CourseController.getOneById);
+router.get("/:courseId", CourseController.getOneById);
 
 router.get("/", CourseController.getAllFromDb);
 
@@ -22,14 +22,14 @@ router.post(
 );
 
 router.patch(
-  "/:id",
+  "/:courseId",
   authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
   validateRequest(CourseValidation.update),
   CourseController.updateOneById
 );
 
 router.delete(
-  "/:id",
+  "/:courseId",
   authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
   CourseController.deleteOneById
 );

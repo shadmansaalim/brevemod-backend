@@ -8,6 +8,7 @@ import { PaginationConstants } from "../../../constants/pagination";
 import { CourseService } from "./course.service";
 import { ICourse } from "./course.interface";
 import { CourseConstants } from "./course.constant";
+import { Types } from "mongoose";
 
 const insertIntoDb = catchAsync(async (req: Request, res: Response) => {
   const { ...courseData } = req.body;
@@ -38,8 +39,9 @@ const getAllFromDb = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getOneById = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const result = await CourseService.getOneById(id);
+  const courseId = req.params.courseId;
+
+  const result = await CourseService.getOneById(courseId);
 
   sendResponse<ICourse>(res, {
     statusCode: httpStatus.OK,
@@ -50,10 +52,10 @@ const getOneById = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateOneById = catchAsync(async (req: Request, res: Response) => {
-  const id = req.params.id;
+  const courseId = req.params.courseId;
   const updatedData = req.body;
 
-  const result = await CourseService.updateOneById(id, updatedData);
+  const result = await CourseService.updateOneById(courseId, updatedData);
 
   sendResponse<ICourse>(res, {
     statusCode: httpStatus.OK,
@@ -64,9 +66,9 @@ const updateOneById = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteOneById = catchAsync(async (req: Request, res: Response) => {
-  const id = req.params.id;
+  const courseId = req.params.courseId;
 
-  const result = await CourseService.deleteOneById(id);
+  const result = await CourseService.deleteOneById(courseId);
 
   sendResponse<ICourse>(res, {
     statusCode: httpStatus.OK,

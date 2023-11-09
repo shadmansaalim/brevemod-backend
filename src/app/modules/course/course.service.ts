@@ -38,16 +38,20 @@ const getAllFromDb = async (
 };
 
 const getOneById = async (id: string): Promise<ICourse | null> => {
-  return await Course.findOne({ _id: id });
+  return await Course.findOne({ _id: new Types.ObjectId(id) });
 };
 
 const updateOneById = async (
   id: string,
   payload: Partial<ICourse>
 ): Promise<ICourse | null> => {
-  return await Course.findOneAndUpdate({ _id: id }, payload, {
-    new: true,
-  });
+  return await Course.findOneAndUpdate(
+    { _id: new Types.ObjectId(id) },
+    payload,
+    {
+      new: true,
+    }
+  );
 };
 
 const deleteOneById = async (id: string): Promise<ICourse | null> => {
@@ -82,7 +86,9 @@ const deleteOneById = async (id: string): Promise<ICourse | null> => {
     await CourseReview.deleteMany({ course: new Types.ObjectId(id) });
 
     // Deleting the course
-    deletedCourseData = await Course.findOneAndDelete({ _id: id });
+    deletedCourseData = await Course.findOneAndDelete({
+      _id: new Types.ObjectId(id),
+    });
 
     // Committing Transaction
     await session.commitTransaction();
