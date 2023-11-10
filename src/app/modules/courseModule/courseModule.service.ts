@@ -13,7 +13,7 @@ const createCourseModule = async (
 
 const addContentToCourseModule = async (
   moduleId: string,
-  payload: Omit<IModuleContent, "key">
+  payload: IModuleContent
 ): Promise<ICourseModule | null> => {
   // Finding course module
   const courseModule = await CourseModule.findOne({
@@ -25,18 +25,12 @@ const addContentToCourseModule = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Course Module does not exists.");
   }
 
-  // Getting the module content key
-  const courseModuleContentKey =
-    (courseModule.moduleContents && courseModule.moduleContents.length + 1) ||
-    1;
-
   // Adding the content to course module
   const result = await CourseModule.findOneAndUpdate(
     { _id: new Types.ObjectId(moduleId) },
     {
       $push: {
         moduleContents: {
-          key: courseModuleContentKey,
           ...payload,
         },
       },
@@ -50,7 +44,9 @@ const addContentToCourseModule = async (
 const getAllModulesByCourse = async (
   courseId: string
 ): Promise<ICourseModule[]> => {
-  return await CourseModule.find({ courseId: new Types.ObjectId(courseId) });
+  return await CourseModule.find({
+    courseId: new Types.ObjectId(courseId),
+  }).sort({ moduleNumber: "asc" });
 };
 
 export const CourseModuleService = {

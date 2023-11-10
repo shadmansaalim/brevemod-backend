@@ -13,6 +13,7 @@ import { Purchase } from "./purchase.model";
 import mongoose from "mongoose";
 import { IPurchase } from "./purchase.interface";
 import { Types } from "mongoose";
+import { UserCourseProgress } from "../userCourseProgress/userCourseProgress.model";
 
 const getMyCourses = async (authUserId: string): Promise<ICourse[]> => {
   // Finding user
@@ -127,25 +128,19 @@ const purchaseCourse = async (
   // Finding User Purchases
   const userPurchases = await Purchase.findOne({ user: authUserId });
 
-  // Throwing error if user purchases does not exists
-  if (!userPurchases) {
-    throw new ApiError(
-      httpStatus.NOT_FOUND,
-      "User purchases data does not exists."
+  if (userPurchases) {
+    // Check if course already purchased
+    const checkAlreadyPurchased = cart.courses.filter((id) =>
+      (userPurchases.courses as Types.ObjectId[]).includes(id)
     );
-  }
 
-  // Check if course already purchased
-  const checkAlreadyPurchased = cart.courses.filter((id) =>
-    (userPurchases.courses as Types.ObjectId[]).includes(id)
-  );
-
-  // Throwing error if user tries to purchase a course which he/she did already
-  if (checkAlreadyPurchased.length) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      `You cannot purchase a course that you already purchased once.`
-    );
+    // Throwing error if user tries to purchase a course which he/she did already
+    if (checkAlreadyPurchased.length) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `You cannot purchase a course that you already purchased once.`
+      );
+    }
   }
 
   let newPurchaseData = null;
@@ -157,18 +152,25 @@ const purchaseCourse = async (
     // Starting Transaction
     session.startTransaction();
 
-    // Adding courses to purchase list
-    userPurchases.courses = [
-      ...cart.courses,
-      ...(userPurchases.courses as Types.ObjectId[]),
-    ];
-    newPurchaseData = await Purchase.findOneAndUpdate(
-      { user: authUserId },
-      userPurchases,
-      {
-        new: true,
-      }
-    );
+    if (userPurchases) {
+      // Adding courses to purchase list
+      userPurchases.courses = [
+        ...cart.courses,
+        ...(userPurchases.courses as Types.ObjectId[]),
+      ];
+      newPurchaseData = await Purchase.findOneAndUpdate(
+        { user: authUserId },
+        userPurchases,
+        {
+          new: true,
+        }
+      );
+    } else {
+      newPurchaseData = await Purchase.create({
+        user: authUserId,
+        courses: [...cart.courses],
+      });
+    }
 
     // Throwing error if fails to update purchase data
     if (!newPurchaseData) {
@@ -198,6 +200,19 @@ const purchaseCourse = async (
     if (!resetCart) {
       throw new ApiError(httpStatus.BAD_REQUEST, `Failed to purchase courses.`);
     }
+
+    // Creating user course progress data for each purchased courses
+    // newPurchaseData.courses.forEach(async (courseId) => {
+    //   const createUserCourseProgress = await UserCourseProgress.create({
+    //     user: authUserId,
+    //     courseId,
+    //   });
+
+    //   // Throwing error if fails
+    //   if (!createUserCourseProgress) {
+    //     throw new ApiError(httpStatus.BAD_REQUEST, `Something went wrong.`);
+    //   }
+    // });
 
     // Committing Transaction
     await session.commitTransaction();

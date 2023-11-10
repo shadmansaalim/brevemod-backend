@@ -10,6 +10,8 @@ import { ProfileRoutes } from "../modules/profile/profile.route";
 import { CourseReviewRoutes } from "../modules/courseReview/courseReview.route";
 import { FeedbackRoutes } from "../modules/feedback/feedback.route";
 import { AdminDashboardRoutes } from "../modules/adminDashboard/adminDashboard.route";
+import { CourseModuleRoutes } from "../modules/courseModule/courseModule.route";
+import { UserCourseProgressRoutes } from "../modules/userCourseProgress/userCourseProgress.route";
 
 // Express router
 const router = express.Router();
@@ -18,9 +20,11 @@ const router = express.Router();
 const moduleRoutes: IModuleRoute[] = [
   { path: "/auth", route: AuthRoutes },
   { path: "/courses", route: CourseRoutes },
+  { path: "/course-modules", route: CourseModuleRoutes },
   { path: "/cart", route: CartRoutes },
   { path: "/purchases", route: PurchaseRoutes },
   { path: "/users", route: UserRoutes },
+  { path: "/course-progress", route: UserCourseProgressRoutes },
   { path: "/profile", route: ProfileRoutes },
   { path: "/course-reviews", route: CourseReviewRoutes },
   { path: "/feedbacks", route: FeedbackRoutes },

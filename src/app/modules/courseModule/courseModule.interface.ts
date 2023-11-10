@@ -4,7 +4,7 @@ import { Types } from "mongoose";
 import { ICourse } from "../course/course.interface";
 
 export type IModuleContent = {
-  key: number;
+  _id: Types.ObjectId;
   title: string;
   type: "video" | "quiz";
   link: string;
@@ -16,7 +16,7 @@ export type ICourseModule = {
   courseId: Types.ObjectId | ICourse;
   moduleNumber: number;
   moduleName: string;
-  moduleContents?: IModuleContent[];
+  moduleContents: IModuleContent[];
 };
 
 export type CourseModuleModel = Model<ICourseModule>;

@@ -9,6 +9,7 @@ import { UserConstants } from "./user.constant";
 import { UserService } from "./user.service";
 import { IUser } from "./user.interface";
 import { ENUM_USER_ROLES } from "../../../enums/users";
+import { IUserCourseProgress } from "../userCourseProgress/userCourseProgress.interface";
 
 const insertIntoDb = catchAsync(async (req: Request, res: Response) => {
   // Getting user data

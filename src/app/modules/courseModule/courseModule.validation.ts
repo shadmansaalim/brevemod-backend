@@ -6,7 +6,7 @@ const createCourseModule = z.object({
     courseId: z.string({
       required_error: "CourseId is required",
     }),
-    moduleNumber: z.string({
+    moduleNumber: z.number({
       required_error: "Module number is required",
     }),
     moduleName: z.string({

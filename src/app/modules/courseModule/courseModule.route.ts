@@ -14,14 +14,14 @@ router.get("/:courseId", CourseModuleController.getAllModulesByCourse);
 
 router.post(
   "/",
-  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  // authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
   validateRequest(CourseModuleValidation.createCourseModule),
   CourseModuleController.createCourseModule
 );
 
 router.patch(
-  "/:moduleId",
-  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  "/add-content/:moduleId",
+  // authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
   validateRequest(CourseModuleValidation.addContentToCourseModule),
   CourseModuleController.addContentToCourseModule
 );
