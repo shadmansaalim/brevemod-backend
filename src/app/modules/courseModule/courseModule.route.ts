@@ -55,12 +55,12 @@ router.patch(
   "/update-content/:moduleId/:contentId",
   authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
   validateRequest(CourseModuleValidation.updateContentInCourseModule),
-  CourseModuleController.addContentToCourseModule
+  CourseModuleController.updateContentInCourseModule
 );
 
 router.delete(
   "/remove-content/:moduleId/:contentId",
   authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
-  CourseModuleController.addContentToCourseModule
+  CourseModuleController.deleteContentFromCourseModule
 );
 export const CourseModuleRoutes = router;
