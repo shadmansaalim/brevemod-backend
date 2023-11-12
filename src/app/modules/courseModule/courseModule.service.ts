@@ -81,18 +81,42 @@ const updateContentInCourseModule = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Course Module does not exists.");
   }
 
-  const newModuleContents = courseModule.moduleContents.filter(
-    (content) => !content._id.equals(contentId)
+  // Module contents
+  const moduleContents = courseModule?.moduleContents;
+
+  // Throwing error if module contents is empty
+  if (!moduleContents.length) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      "The module has no content to update."
+    );
+  }
+
+  // Finding index
+  const indexOfContentToUpdate = moduleContents.findIndex((content) =>
+    content._id.equals(contentId)
   );
 
-  newModuleContents.push({ ...payload });
+  if (indexOfContentToUpdate === -1) {
+    // Throwing error if content is not found in module
+    if (!moduleContents.length) {
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        "Content does not exists in module."
+      );
+    }
+  }
+
+  // Delete the content at the specified index
+  moduleContents.splice(indexOfContentToUpdate, 1);
+
+  // Inserting the updated content at the same index
+  moduleContents.splice(indexOfContentToUpdate, 0, { ...payload });
 
   // Updating content
   const result = await CourseModule.findOneAndUpdate(
     { _id: moduleId },
-    {
-      moduleContents: newModuleContents,
-    },
+    { moduleContents },
     { new: true }
   );
 
