@@ -4,11 +4,22 @@ import { ICourseModule, IModuleContent } from "./courseModule.interface";
 import { CourseModule } from "./courseModule.model";
 import ApiError from "../../../errors/ApiError";
 import httpStatus from "http-status";
+import { ENUM_USER_ROLES } from "../../../enums/users";
+import { Console } from "console";
 
 const createCourseModule = async (
   payload: ICourseModule
 ): Promise<ICourseModule> => {
-  return await CourseModule.create(payload);
+  const courseModulesCount = await CourseModule.find({
+    courseId: new Types.ObjectId(payload.courseId),
+  }).count();
+
+  // Setting the module number
+  payload.moduleNumber = courseModulesCount + 1;
+
+  return await CourseModule.create({
+    ...payload,
+  });
 };
 
 const addContentToCourseModule = async (
@@ -42,15 +53,67 @@ const addContentToCourseModule = async (
 };
 
 const getAllModulesByCourse = async (
+  userRole: ENUM_USER_ROLES,
   courseId: string
 ): Promise<ICourseModule[]> => {
-  return await CourseModule.find({
-    courseId: new Types.ObjectId(courseId),
-  }).sort({ moduleNumber: "asc" });
+  const searchingConditions: any = { courseId };
+
+  // For students just retrieving modules with content
+  if (userRole === ENUM_USER_ROLES.STUDENT) {
+    searchingConditions["moduleContents.0"] = { $exists: true };
+  }
+
+  return await CourseModule.find(searchingConditions).sort({
+    moduleNumber: "asc",
+  });
+};
+
+const isCourseContentPublished = async (courseId: string): Promise<boolean> => {
+  // Finding course module for this course
+  const courseModuleAvailable = await CourseModule.findOne({ courseId });
+
+  // Returning false if no module
+  if (!courseModuleAvailable || !courseModuleAvailable.moduleContents.length) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
+const isValidContent = async (
+  courseId: string,
+  moduleId: string,
+  contentId: string
+): Promise<boolean> => {
+  // Finding course module for this course
+  const courseModule = await CourseModule.findOne({
+    _id: moduleId,
+    courseId,
+  });
+
+  // Returning false if no module
+  if (!courseModule || !courseModule.moduleContents.length) {
+    return false;
+  }
+
+  // Finding requested content
+  const requestedContent = courseModule.moduleContents.find((content) =>
+    content._id.equals(contentId)
+  );
+
+  console.log(requestedContent);
+
+  if (requestedContent) {
+    return true;
+  } else {
+    return false;
+  }
 };
 
 export const CourseModuleService = {
   createCourseModule,
   addContentToCourseModule,
   getAllModulesByCourse,
+  isCourseContentPublished,
+  isValidContent,
 };

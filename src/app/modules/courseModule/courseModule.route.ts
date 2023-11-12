@@ -10,7 +10,25 @@ import { CourseModuleValidation } from "./courseModule.validation";
 const router = express.Router();
 
 // API Endpoints
-router.get("/:courseId", CourseModuleController.getAllModulesByCourse);
+router.get(
+  "/:courseId",
+  authGuard(
+    ENUM_USER_ROLES.STUDENT,
+    ENUM_USER_ROLES.ADMIN,
+    ENUM_USER_ROLES.SUPER_ADMIN
+  ),
+  CourseModuleController.getAllModulesByCourse
+);
+
+router.get(
+  "/content-published/:courseId",
+  CourseModuleController.isCourseContentPublished
+);
+
+router.get(
+  "/content-valid/:courseId/:moduleId/:contentId",
+  CourseModuleController.isValidContent
+);
 
 router.post(
   "/",

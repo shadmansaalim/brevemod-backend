@@ -8,12 +8,16 @@ export type IUserCourseProgress = {
   _id: Types.ObjectId;
   user: Types.ObjectId | IUser;
   courseId: Types.ObjectId | ICourse;
-  progress?: {
+  completed: {
     moduleId: Types.ObjectId;
     moduleNumber: number;
     contentId: Types.ObjectId;
-    completed: boolean;
   }[];
+  current: {
+    moduleId: Types.ObjectId;
+    moduleNumber: number;
+    contentId: Types.ObjectId;
+  };
   completedContentCount: number;
   percentage: number;
 };

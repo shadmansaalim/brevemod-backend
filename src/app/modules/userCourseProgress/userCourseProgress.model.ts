@@ -17,7 +17,7 @@ const userCourseProgressSchema = new Schema<IUserCourseProgress>(
       ref: "Course",
       required: true,
     },
-    progress: {
+    completed: {
       type: [
         {
           moduleId: {
@@ -33,13 +33,24 @@ const userCourseProgressSchema = new Schema<IUserCourseProgress>(
             type: String,
             required: true,
           },
-          completed: {
-            type: Boolean,
-            required: true,
-          },
         },
       ],
       default: [],
+    },
+    current: {
+      moduleId: {
+        type: Schema.Types.ObjectId,
+        ref: "CourseModule",
+        required: true,
+      },
+      moduleNumber: {
+        type: Number,
+        required: true,
+      },
+      contentId: {
+        type: String,
+        required: true,
+      },
     },
     completedContentCount: {
       type: Number,

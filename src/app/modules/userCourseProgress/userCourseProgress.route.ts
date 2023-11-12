@@ -15,10 +15,16 @@ router.get(
   UserCourseProgressController.getUserCourseProgress
 );
 
-// router.patch(
-//   "/:courseId",
-//   authGuard(ENUM_USER_ROLES.STUDENT),
-//   UserCourseProgressController.updateUserCourseProgress
-// );
+router.post(
+  "/start-course/:courseId",
+  authGuard(ENUM_USER_ROLES.STUDENT),
+  UserCourseProgressController.startCourse
+);
+
+router.patch(
+  "/:courseId",
+  authGuard(ENUM_USER_ROLES.STUDENT),
+  UserCourseProgressController.updateUserCourseProgress
+);
 
 export const UserCourseProgressRoutes = router;

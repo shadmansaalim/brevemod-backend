@@ -36,8 +36,14 @@ const addContentToCourseModule = catchAsync(
 
 const getAllModulesByCourse = catchAsync(
   async (req: Request, res: Response) => {
+    // Getting authenticated user from request
+    const user = (req as any).user;
+
     const { courseId } = req.params;
-    const result = await CourseModuleService.getAllModulesByCourse(courseId);
+    const result = await CourseModuleService.getAllModulesByCourse(
+      user.role,
+      courseId
+    );
 
     sendResponse<ICourseModule[]>(res, {
       statusCode: httpStatus.OK,
@@ -48,8 +54,40 @@ const getAllModulesByCourse = catchAsync(
   }
 );
 
+const isCourseContentPublished = catchAsync(
+  async (req: Request, res: Response) => {
+    const { courseId } = req.params;
+    const result = await CourseModuleService.isCourseContentPublished(courseId);
+
+    sendResponse<boolean>(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Course content publishing status retrieved successfully.",
+      data: result,
+    });
+  }
+);
+
+const isValidContent = catchAsync(async (req: Request, res: Response) => {
+  const { courseId, moduleId, contentId } = req.params;
+  const result = await CourseModuleService.isValidContent(
+    courseId,
+    moduleId,
+    contentId
+  );
+
+  sendResponse<boolean>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Course content validity status retrieved successfully.",
+    data: result,
+  });
+});
+
 export const CourseModuleController = {
   createCourseModule,
   addContentToCourseModule,
   getAllModulesByCourse,
+  isCourseContentPublished,
+  isValidContent,
 };

@@ -13,7 +13,7 @@ export type IModuleContent = {
 
 export type ICourseModule = {
   _id: Types.ObjectId;
-  courseId: Types.ObjectId | ICourse;
+  courseId: Types.ObjectId;
   moduleNumber: number;
   moduleName: string;
   moduleContents: IModuleContent[];
