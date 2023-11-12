@@ -32,16 +32,36 @@ router.get(
 
 router.post(
   "/",
-  // authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
   validateRequest(CourseModuleValidation.createCourseModule),
   CourseModuleController.createCourseModule
 );
 
 router.patch(
+  "/:moduleId",
+  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  validateRequest(CourseModuleValidation.updateCourseModule),
+  CourseModuleController.updateCourseModule
+);
+
+router.patch(
   "/add-content/:moduleId",
-  // authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
   validateRequest(CourseModuleValidation.addContentToCourseModule),
   CourseModuleController.addContentToCourseModule
 );
 
+router.patch(
+  "/update-content/:moduleId/:contentId",
+  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  validateRequest(CourseModuleValidation.addContentToCourseModule),
+  CourseModuleController.addContentToCourseModule
+);
+
+router.delete(
+  "/remove-content/:moduleId/:contentId",
+  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  validateRequest(CourseModuleValidation.addContentToCourseModule),
+  CourseModuleController.addContentToCourseModule
+);
 export const CourseModuleRoutes = router;

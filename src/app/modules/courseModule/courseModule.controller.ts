@@ -17,6 +17,22 @@ const createCourseModule = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const updateCourseModule = catchAsync(async (req: Request, res: Response) => {
+  const { moduleId } = req.params;
+  const { moduleName } = req.body;
+  const result = await CourseModuleService.updateCourseModule(
+    moduleId,
+    moduleName
+  );
+
+  sendResponse<ICourseModule>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Course Module updated successfully.",
+    data: result,
+  });
+});
+
 const addContentToCourseModule = catchAsync(
   async (req: Request, res: Response) => {
     const { moduleId } = req.params;
@@ -29,6 +45,41 @@ const addContentToCourseModule = catchAsync(
       statusCode: httpStatus.OK,
       success: true,
       message: "Content added to module successfully.",
+      data: result,
+    });
+  }
+);
+
+const updateContentInCourseModule = catchAsync(
+  async (req: Request, res: Response) => {
+    const { moduleId, contentId } = req.params;
+    const result = await CourseModuleService.updateContentInCourseModule(
+      moduleId,
+      contentId,
+      req.body
+    );
+
+    sendResponse<ICourseModule>(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Content updated in module successfully.",
+      data: result,
+    });
+  }
+);
+
+const deleteContentFromCourseModule = catchAsync(
+  async (req: Request, res: Response) => {
+    const { moduleId, contentId } = req.params;
+    const result = await CourseModuleService.deleteContentFromCourseModule(
+      moduleId,
+      contentId
+    );
+
+    sendResponse<ICourseModule>(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Content deleted from module successfully.",
       data: result,
     });
   }
@@ -86,7 +137,10 @@ const isValidContent = catchAsync(async (req: Request, res: Response) => {
 
 export const CourseModuleController = {
   createCourseModule,
+  updateCourseModule,
   addContentToCourseModule,
+  updateContentInCourseModule,
+  deleteContentFromCourseModule,
   getAllModulesByCourse,
   isCourseContentPublished,
   isValidContent,

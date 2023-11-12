@@ -12,6 +12,14 @@ const createCourseModule = z.object({
   }),
 });
 
+const updateCourseModule = z.object({
+  body: z.object({
+    moduleName: z.string({
+      required_error: "Module Name is required",
+    }),
+  }),
+});
+
 const addContentToCourseModule = z.object({
   body: z.object({
     title: z.string({
@@ -27,7 +35,18 @@ const addContentToCourseModule = z.object({
   }),
 });
 
+const updateContentInCourseModule = z.object({
+  body: z.object({
+    title: z.string().optional(),
+    type: z.string().optional(),
+    link: z.string().optional(),
+    duration: z.number().optional(),
+  }),
+});
+
 export const CourseModuleValidation = {
   createCourseModule,
+  updateCourseModule,
   addContentToCourseModule,
+  updateContentInCourseModule,
 };

@@ -5,7 +5,6 @@ import { CourseModule } from "./courseModule.model";
 import ApiError from "../../../errors/ApiError";
 import httpStatus from "http-status";
 import { ENUM_USER_ROLES } from "../../../enums/users";
-import { Console } from "console";
 
 const createCourseModule = async (
   payload: ICourseModule
@@ -20,6 +19,21 @@ const createCourseModule = async (
   return await CourseModule.create({
     ...payload,
   });
+};
+
+const updateCourseModule = async (
+  moduleId: string,
+  moduleName: string
+): Promise<ICourseModule | null> => {
+  return await CourseModule.findOneAndUpdate(
+    {
+      _id: moduleId,
+    },
+    {
+      moduleName,
+    },
+    { new: true }
+  );
 };
 
 const addContentToCourseModule = async (
@@ -45,6 +59,69 @@ const addContentToCourseModule = async (
           ...payload,
         },
       },
+    },
+    { new: true }
+  );
+
+  return result;
+};
+
+const updateContentInCourseModule = async (
+  moduleId: string,
+  contentId: string,
+  payload: IModuleContent
+): Promise<ICourseModule | null> => {
+  // Finding course module
+  const courseModule = await CourseModule.findOne({
+    _id: new Types.ObjectId(moduleId),
+  });
+
+  // Throwing error if course module not found
+  if (!courseModule) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Course Module does not exists.");
+  }
+
+  const newModuleContents = courseModule.moduleContents.filter(
+    (content) => !content._id.equals(contentId)
+  );
+
+  newModuleContents.push({ ...payload });
+
+  // Updating content
+  const result = await CourseModule.findOneAndUpdate(
+    { _id: moduleId },
+    {
+      moduleContents: newModuleContents,
+    },
+    { new: true }
+  );
+
+  return result;
+};
+
+const deleteContentFromCourseModule = async (
+  moduleId: string,
+  contentId: string
+): Promise<ICourseModule | null> => {
+  // Finding course module
+  const courseModule = await CourseModule.findOne({
+    _id: new Types.ObjectId(moduleId),
+  });
+
+  // Throwing error if course module not found
+  if (!courseModule) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Course Module does not exists.");
+  }
+
+  const newModuleContents = courseModule.moduleContents.filter(
+    (content) => !content._id.equals(contentId)
+  );
+
+  // Updating content
+  const result = await CourseModule.findOneAndUpdate(
+    { _id: moduleId },
+    {
+      moduleContents: newModuleContents,
     },
     { new: true }
   );
@@ -101,8 +178,6 @@ const isValidContent = async (
     content._id.equals(contentId)
   );
 
-  console.log(requestedContent);
-
   if (requestedContent) {
     return true;
   } else {
@@ -112,7 +187,10 @@ const isValidContent = async (
 
 export const CourseModuleService = {
   createCourseModule,
+  updateCourseModule,
   addContentToCourseModule,
+  updateContentInCourseModule,
+  deleteContentFromCourseModule,
   getAllModulesByCourse,
   isCourseContentPublished,
   isValidContent,
