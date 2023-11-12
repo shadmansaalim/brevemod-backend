@@ -54,14 +54,13 @@ router.patch(
 router.patch(
   "/update-content/:moduleId/:contentId",
   authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
-  validateRequest(CourseModuleValidation.addContentToCourseModule),
+  validateRequest(CourseModuleValidation.updateContentInCourseModule),
   CourseModuleController.addContentToCourseModule
 );
 
 router.delete(
   "/remove-content/:moduleId/:contentId",
   authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
-  validateRequest(CourseModuleValidation.addContentToCourseModule),
   CourseModuleController.addContentToCourseModule
 );
 export const CourseModuleRoutes = router;
