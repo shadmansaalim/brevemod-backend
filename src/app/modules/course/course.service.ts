@@ -10,6 +10,8 @@ import { Types } from "mongoose";
 import { User } from "../user/user.model";
 import mongoose from "mongoose";
 import { CourseReview } from "../courseReview/courseReview.model";
+import ApiError from "../../../errors/ApiError";
+import httpStatus from "http-status";
 
 const insertIntoDb = async (payload: ICourse): Promise<ICourse> => {
   return await Course.create(payload);

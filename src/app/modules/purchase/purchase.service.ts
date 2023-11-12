@@ -201,18 +201,31 @@ const purchaseCourse = async (
       throw new ApiError(httpStatus.BAD_REQUEST, `Failed to purchase courses.`);
     }
 
-    // Creating user course progress data for each purchased courses
-    // newPurchaseData.courses.forEach(async (courseId) => {
-    //   const createUserCourseProgress = await UserCourseProgress.create({
-    //     user: authUserId,
-    //     courseId,
-    //   });
+    // Updating student count for each courses
+    newPurchaseData.courses.forEach(async (courseId) => {
+      const purchasingCourse = await Course.findOne({
+        _id: courseId,
+      });
 
-    //   // Throwing error if fails
-    //   if (!createUserCourseProgress) {
-    //     throw new ApiError(httpStatus.BAD_REQUEST, `Something went wrong.`);
-    //   }
-    // });
+      // Throwing error if course not found
+      if (!purchasingCourse) {
+        throw new ApiError(httpStatus.BAD_REQUEST, `Course does not exist.`);
+      }
+
+      const studentsCount = purchasingCourse.studentsCount + 1;
+
+      const updateCourse = await Course.findOneAndUpdate(
+        {
+          _id: courseId,
+        },
+        { studentsCount }
+      );
+
+      // Throwing error update fails
+      if (!updateCourse) {
+        throw new ApiError(httpStatus.BAD_REQUEST, `Something went wrong.`);
+      }
+    });
 
     // Committing Transaction
     await session.commitTransaction();
@@ -232,62 +245,9 @@ const purchaseCourse = async (
   return newPurchaseData;
 };
 
-// Function to cancel user course enrollment
-const cancelEnrollment = async (
-  authUserId: string,
-  courseId: string
-): Promise<IUser | null> => {
-  // Finding user
-  const user = await User.findOne({ _id: authUserId });
-
-  // Throwing error if user does not exists
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User does not exists.");
-  }
-
-  const course = await Course.findOne({ _id: courseId });
-
-  // Throwing error if course does not exists
-  if (!course) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Course does not exists.");
-  }
-
-  // User purchases
-  const purchases = user.purchases;
-
-  const isPurchased = (purchases as ICourse[]).find((course) =>
-    course._id.equals(courseId)
-  );
-
-  // Throwing error if user didn't purchase the course which he is trying to cancel
-
-  if (!isPurchased) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      `You didn't purchase the course that you are trying to cancel.`
-    );
-  }
-
-  // Removing the course from purchases
-  const newPurchases = (purchases as ICourse[]).filter(
-    (course) => !course._id.equals(courseId)
-  );
-
-  // Updated data
-  const updatedData = {
-    purchases: [...newPurchases],
-  };
-
-  // Updating user purchases data
-  return await User.findOneAndUpdate({ _id: authUserId }, updatedData, {
-    new: true,
-  });
-};
-
 export const PurchaseService = {
   getMyCourses,
   getIsCoursePurchased,
   createPaymentIntent,
   purchaseCourse,
-  cancelEnrollment,
 };

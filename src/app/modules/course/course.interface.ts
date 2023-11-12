@@ -9,13 +9,13 @@ export type ICourse = {
   instructorName: string;
   totalRating: number;
   ratingCount: number;
-  avgRating?: number;
+  avgRating: number;
   price: number;
   thumbnailLink: string;
   introVideoLink: string;
   lecturesCount: number;
   projectsCount: number;
-  studentsCount?: number;
+  studentsCount: number;
 };
 
 export type CourseModel = Model<ICourse>;
