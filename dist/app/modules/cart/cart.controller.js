@@ -18,6 +18,17 @@ const catchAsync_1 = __importDefault(require("../../../shared/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../../shared/sendResponse"));
 const cart_service_1 = require("./cart.service");
 const mongoose_1 = require("mongoose");
+const getUserCart = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // Getting authenticated user from request
+    const user = req.user;
+    const result = yield cart_service_1.CartService.getUserCart(user.id);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: "User cart retrieved successfully",
+        data: result,
+    });
+}));
 const addToCart = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // Getting authenticated user from request
     const user = req.user;
@@ -45,6 +56,7 @@ const removeFromCart = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
     });
 }));
 exports.CartController = {
+    getUserCart,
     addToCart,
     removeFromCart,
 };

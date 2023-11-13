@@ -12,6 +12,7 @@ const cart_controller_1 = require("./cart.controller");
 // Express router
 const router = express_1.default.Router();
 // API Endpoints
+router.get("/", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.STUDENT), cart_controller_1.CartController.getUserCart);
 router.patch("/add-to-cart/:courseId", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.STUDENT), cart_controller_1.CartController.addToCart);
 router.patch("/remove-from-cart/:courseId", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.STUDENT), cart_controller_1.CartController.removeFromCart);
 exports.CartRoutes = router;

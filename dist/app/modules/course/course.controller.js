@@ -54,8 +54,8 @@ const getAllFromDb = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, v
     });
 }));
 const getOneById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.params;
-    const result = yield course_service_1.CourseService.getOneById(id);
+    const courseId = req.params.courseId;
+    const result = yield course_service_1.CourseService.getOneById(courseId);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -64,9 +64,9 @@ const getOneById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, voi
     });
 }));
 const updateOneById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.params.id;
+    const courseId = req.params.courseId;
     const updatedData = req.body;
-    const result = yield course_service_1.CourseService.updateOneById(id, updatedData);
+    const result = yield course_service_1.CourseService.updateOneById(courseId, updatedData);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -75,12 +75,36 @@ const updateOneById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
     });
 }));
 const deleteOneById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.params.id;
-    const result = yield course_service_1.CourseService.deleteOneById(id);
+    const courseId = req.params.courseId;
+    const result = yield course_service_1.CourseService.deleteOneById(courseId);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
         message: "Course deleted successfully.",
+        data: result,
+    });
+}));
+const addCourseRating = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // Getting authenticated user from request
+    const user = req.user;
+    const { courseId } = req.params;
+    const result = yield course_service_1.CourseService.addCourseRating(user.id, courseId, req.body.rating);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: "User Course rating added successfully.",
+        data: result,
+    });
+}));
+const getUserCourseRating = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // Getting authenticated user from request
+    const user = req.user;
+    const courseId = req.params.courseId;
+    const result = yield course_service_1.CourseService.getUserCourseRating(user.id, courseId);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: "User Course Rating retrieved successfully",
         data: result,
     });
 }));
@@ -90,4 +114,6 @@ exports.CourseController = {
     getOneById,
     updateOneById,
     deleteOneById,
+    addCourseRating,
+    getUserCourseRating,
 };

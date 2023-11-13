@@ -14,20 +14,20 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 // Express App
 const app = (0, express_1.default)();
 // Using cors
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({ origin: "http://localhost:3000", credentials: true }));
 // Parser
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cookie_parser_1.default)());
 // App using the routes
-app.use('/api/v1', routes_1.default);
+app.use("/api/v1", routes_1.default);
 // Global Error Handler
 app.use(globalErrorHandler_1.default);
 // Handle NOT FOUND Route
 app.use((req, res, next) => {
     res.status(http_status_1.default.NOT_FOUND).json({
         success: false,
-        message: 'Not Found.',
+        message: "Not Found.",
         errorMessages: [
             {
                 path: req.originalUrl,

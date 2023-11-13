@@ -12,7 +12,8 @@ const purchase_controller_1 = require("./purchase.controller");
 // Express router
 const router = express_1.default.Router();
 // API Endpoints
+router.get("/my-courses", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.STUDENT), purchase_controller_1.PurchaseController.getMyCourses);
+router.get("/status/:courseId", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.STUDENT), purchase_controller_1.PurchaseController.getIsCoursePurchased);
 router.post("/create-payment-intent", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.STUDENT), purchase_controller_1.PurchaseController.createPaymentIntent);
 router.post("/", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.STUDENT), purchase_controller_1.PurchaseController.purchaseCourse);
-router.delete("/cancel-enrollment/:courseId", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.STUDENT), purchase_controller_1.PurchaseController.cancelEnrollment);
 exports.PurchaseRoutes = router;

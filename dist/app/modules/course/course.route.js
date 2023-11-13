@@ -14,9 +14,11 @@ const course_validation_1 = require("./course.validation");
 // Express router
 const router = express_1.default.Router();
 // API Endpoints
-router.get("/:id", course_controller_1.CourseController.getOneById);
+router.get("/rating/:courseId", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.STUDENT), course_controller_1.CourseController.getUserCourseRating);
+router.get("/:courseId", course_controller_1.CourseController.getOneById);
 router.get("/", course_controller_1.CourseController.getAllFromDb);
 router.post("/", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.ADMIN, users_1.ENUM_USER_ROLES.SUPER_ADMIN), (0, validateRequest_1.default)(course_validation_1.CourseValidation.create), course_controller_1.CourseController.insertIntoDb);
-router.patch("/:id", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.ADMIN, users_1.ENUM_USER_ROLES.SUPER_ADMIN), (0, validateRequest_1.default)(course_validation_1.CourseValidation.update), course_controller_1.CourseController.updateOneById);
-router.delete("/:id", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.ADMIN, users_1.ENUM_USER_ROLES.SUPER_ADMIN), course_controller_1.CourseController.deleteOneById);
+router.patch("/:courseId", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.ADMIN, users_1.ENUM_USER_ROLES.SUPER_ADMIN), (0, validateRequest_1.default)(course_validation_1.CourseValidation.update), course_controller_1.CourseController.updateOneById);
+router.patch("/add-rating/:courseId", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.STUDENT), (0, validateRequest_1.default)(course_validation_1.CourseValidation.addCourseRating), course_controller_1.CourseController.addCourseRating);
+router.delete("/:courseId", (0, authGuard_1.default)(users_1.ENUM_USER_ROLES.ADMIN, users_1.ENUM_USER_ROLES.SUPER_ADMIN), course_controller_1.CourseController.deleteOneById);
 exports.CourseRoutes = router;

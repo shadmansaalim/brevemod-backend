@@ -43,7 +43,15 @@ const update = zod_1.z.object({
         projectsCount: zod_1.z.number().optional(),
     }),
 });
+const addCourseRating = zod_1.z.object({
+    body: zod_1.z.object({
+        rating: zod_1.z.number({
+            required_error: "Rating is required",
+        }),
+    }),
+});
 exports.CourseValidation = {
     create,
     update,
+    addCourseRating,
 };

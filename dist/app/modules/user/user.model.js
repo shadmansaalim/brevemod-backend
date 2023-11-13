@@ -50,39 +50,6 @@ const userSchema = new mongoose_1.Schema({
         unique: true,
         required: true,
     },
-    cart: {
-        courses: [
-            {
-                type: mongoose_1.Schema.Types.ObjectId,
-                ref: "Course",
-                default: [],
-            },
-        ],
-        payment: {
-            subTotal: {
-                type: Number,
-                default: 0.0,
-                set: (value) => parseFloat(value.toFixed(2)),
-            },
-            tax: {
-                type: Number,
-                default: 0.0,
-                set: (value) => parseFloat(value.toFixed(2)),
-            },
-            grandTotal: {
-                type: Number,
-                default: 0.0,
-                set: (value) => parseFloat(value.toFixed(2)),
-            },
-        },
-    },
-    purchases: [
-        {
-            type: mongoose_1.Schema.Types.ObjectId,
-            ref: "Course",
-            default: [],
-        },
-    ],
 }, {
     timestamps: true,
 });

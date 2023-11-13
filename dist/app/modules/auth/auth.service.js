@@ -19,15 +19,12 @@ const http_status_1 = __importDefault(require("http-status"));
 const config_1 = __importDefault(require("../../../config"));
 const jwtHelper_1 = require("../../../helpers/jwtHelper");
 const users_1 = require("../../../enums/users");
+const user_service_1 = require("../user/user.service");
 // Sign up user function
 const signUpUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     // Set user role by default its STUDENT for everyone who signs up
     payload.role = users_1.ENUM_USER_ROLES.STUDENT;
-    const newUser = yield user_model_1.User.create(payload);
-    // Throwing error if fails to create user
-    if (!newUser) {
-        throw new ApiError_1.default(http_status_1.default.BAD_REQUEST, `Failed to create an user`);
-    }
+    yield user_service_1.UserService.insertIntoDb(payload);
 });
 // LOGIN user function
 const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
@@ -51,18 +48,7 @@ const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const accessToken = jwtHelper_1.JwtHelpers.createToken({ id, role }, config_1.default.jwt.secret, config_1.default.jwt.expires_in);
     // Create refresh token
     const refreshToken = jwtHelper_1.JwtHelpers.createToken({ id, role }, config_1.default.jwt.refresh_secret, config_1.default.jwt.refresh_expires_in);
-    const user = yield user_model_1.User.findOne({ _id: id })
-        .populate({
-        path: "cart",
-        populate: [
-            {
-                path: "courses",
-            },
-        ],
-    })
-        .populate({
-        path: "purchases",
-    });
+    const user = yield user_model_1.User.findOne({ _id: id });
     // Throwing error
     if (!user) {
         throw new ApiError_1.default(http_status_1.default.NOT_FOUND, "Failed to retrieve user data.");
