@@ -7,13 +7,20 @@ import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import routes from "./app/routes";
 import httpStatus from "http-status";
 import cookieParser from "cookie-parser";
+import config from "./config";
 
 // Express App
 const app: Application = express();
 
 // Using cors
 app.use(
-  cors({ origin: "https://brevemod-frontend.vercel.app", credentials: true })
+  cors({
+    origin:
+      config.env === "development"
+        ? config.development_frontend_url
+        : config.production_frontend_url,
+    credentials: true,
+  })
 );
 
 // Parser

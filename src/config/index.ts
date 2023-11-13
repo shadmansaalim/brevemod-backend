@@ -18,4 +18,6 @@ export default {
     refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN,
   },
   stripe__payment_secret: process.env.STRIPE_PAYMENT_SECRET,
+  development_frontend_url: process.env.DEVELOPMENT_FRONTEND_URL,
+  production_frontend_url: process.env.PRODUCTION_FRONTEND_URL,
 };
