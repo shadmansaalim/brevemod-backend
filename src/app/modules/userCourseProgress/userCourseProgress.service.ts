@@ -62,6 +62,14 @@ const updateUserCourseProgress = async (
     );
   }
 
+  // Throwing error if user progress is already 100%
+  if (userProgress.percentage === 100) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `User progress is already 100% nothing to update.`
+    );
+  }
+
   // Moving the current content to completed
   userProgress.completed = [...userProgress.completed, userProgress.current];
   userProgress.completedContentCount += 1;
