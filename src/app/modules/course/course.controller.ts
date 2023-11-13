@@ -9,6 +9,7 @@ import { CourseService } from "./course.service";
 import { ICourse } from "./course.interface";
 import { CourseConstants } from "./course.constant";
 import { Types } from "mongoose";
+import { IUserCourseRating } from "../userCourseRating/userCourseRating.interface";
 
 const insertIntoDb = catchAsync(async (req: Request, res: Response) => {
   const { ...courseData } = req.body;
@@ -78,10 +79,31 @@ const deleteOneById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const addCourseRating = catchAsync(async (req: Request, res: Response) => {
+  // Getting authenticated user from request
+  const user = (req as any).user;
+
+  const { courseId } = req.params;
+
+  const result = await CourseService.addCourseRating(
+    user.id,
+    courseId,
+    req.body.rating
+  );
+
+  sendResponse<IUserCourseRating>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User Course rating added successfully.",
+    data: result,
+  });
+});
+
 export const CourseController = {
   insertIntoDb,
   getAllFromDb,
   getOneById,
   updateOneById,
   deleteOneById,
+  addCourseRating,
 };

@@ -28,6 +28,13 @@ router.patch(
   CourseController.updateOneById
 );
 
+router.patch(
+  "/add-rating/:courseId",
+  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  validateRequest(CourseValidation.addCourseRating),
+  CourseController.addCourseRating
+);
+
 router.delete(
   "/:courseId",
   authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),

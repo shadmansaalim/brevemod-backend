@@ -43,7 +43,16 @@ const update = z.object({
   }),
 });
 
+const addCourseRating = z.object({
+  body: z.object({
+    rating: z.number({
+      required_error: "Rating is required",
+    }),
+  }),
+});
+
 export const CourseValidation = {
   create,
   update,
+  addCourseRating,
 };

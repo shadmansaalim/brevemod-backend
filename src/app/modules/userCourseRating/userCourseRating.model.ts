@@ -1,10 +1,13 @@
 // Imports
 import { Schema, model } from "mongoose";
-import { CourseReviewModel, ICourseReview } from "./courseReview.interface";
+import {
+  IUserCourseRating,
+  UserCourseRatingModel,
+} from "./userCourseRating.interface";
 
-const courseReviewSchema = new Schema<ICourseReview>(
+const userCourseRatingSchema = new Schema<IUserCourseRating>(
   {
-    course: {
+    courseId: {
       type: Schema.Types.ObjectId,
       ref: "Course",
       required: true,
@@ -18,17 +21,13 @@ const courseReviewSchema = new Schema<ICourseReview>(
       type: Number,
       required: true,
     },
-    words: {
-      type: String,
-      required: true,
-    },
   },
   {
     timestamps: true,
   }
 );
 
-export const CourseReview = model<ICourseReview, CourseReviewModel>(
-  "CourseReview",
-  courseReviewSchema
+export const UserCourseRating = model<IUserCourseRating, UserCourseRatingModel>(
+  "UserCourseRating",
+  userCourseRatingSchema
 );
