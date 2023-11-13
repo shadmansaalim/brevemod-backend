@@ -13,7 +13,6 @@ import { Purchase } from "./purchase.model";
 import mongoose from "mongoose";
 import { IPurchase } from "./purchase.interface";
 import { Types } from "mongoose";
-import { UserCourseProgress } from "../userCourseProgress/userCourseProgress.model";
 
 const getMyCourses = async (authUserId: string): Promise<ICourse[]> => {
   // Finding user

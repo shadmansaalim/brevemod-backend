@@ -99,26 +99,16 @@ const updateUserCourseProgress = async (
     });
 
     // Throwing error if there is no next module
-    if (!nextModule) {
-      throw new ApiError(httpStatus.BAD_REQUEST, `No next module yet.`);
+    if (nextModule && nextModule.moduleContents.length) {
+      // Next Module first content
+      const moduleFirstContent = nextModule.moduleContents[0];
+
+      userProgress.current = {
+        moduleId: nextModule._id,
+        moduleNumber: nextModule.moduleNumber,
+        contentId: moduleFirstContent._id,
+      };
     }
-
-    // Throwing error if there is no content in next module
-    if (!nextModule.moduleContents.length) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        `No content uploaded in next module.`
-      );
-    }
-
-    // Next Module first content
-    const moduleFirstContent = nextModule.moduleContents[0];
-
-    userProgress.current = {
-      moduleId: nextModule._id,
-      moduleNumber: nextModule.moduleNumber,
-      contentId: moduleFirstContent._id,
-    };
   }
 
   // Total module contents for this course
