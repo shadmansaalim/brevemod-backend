@@ -8,7 +8,6 @@ import { PaginationConstants } from "../../../constants/pagination";
 import { CourseService } from "./course.service";
 import { ICourse } from "./course.interface";
 import { CourseConstants } from "./course.constant";
-import { Types } from "mongoose";
 import { IUserCourseRating } from "../userCourseRating/userCourseRating.interface";
 
 const insertIntoDb = catchAsync(async (req: Request, res: Response) => {
@@ -99,6 +98,21 @@ const addCourseRating = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getUserCourseRating = catchAsync(async (req: Request, res: Response) => {
+  // Getting authenticated user from request
+  const user = (req as any).user;
+  const courseId = req.params.courseId;
+
+  const result = await CourseService.getUserCourseRating(user.id, courseId);
+
+  sendResponse<IUserCourseRating>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User Course Rating retrieved successfully",
+    data: result,
+  });
+});
+
 export const CourseController = {
   insertIntoDb,
   getAllFromDb,
@@ -106,4 +120,5 @@ export const CourseController = {
   updateOneById,
   deleteOneById,
   addCourseRating,
+  getUserCourseRating,
 };

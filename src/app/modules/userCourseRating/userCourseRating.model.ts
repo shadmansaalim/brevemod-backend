@@ -20,6 +20,7 @@ const userCourseRatingSchema = new Schema<IUserCourseRating>(
     rating: {
       type: Number,
       required: true,
+      set: (value: number) => value.toFixed(1),
     },
   },
   {

@@ -10,6 +10,12 @@ import { CourseValidation } from "./course.validation";
 const router = express.Router();
 
 // API Endpoints
+router.get(
+  "/rating/:courseId",
+  authGuard(ENUM_USER_ROLES.STUDENT),
+  CourseController.getUserCourseRating
+);
+
 router.get("/:courseId", CourseController.getOneById);
 
 router.get("/", CourseController.getAllFromDb);
@@ -30,7 +36,7 @@ router.patch(
 
 router.patch(
   "/add-rating/:courseId",
-  authGuard(ENUM_USER_ROLES.ADMIN, ENUM_USER_ROLES.SUPER_ADMIN),
+  authGuard(ENUM_USER_ROLES.STUDENT),
   validateRequest(CourseValidation.addCourseRating),
   CourseController.addCourseRating
 );

@@ -211,6 +211,13 @@ const addCourseRating = async (
   return newUserRating;
 };
 
+const getUserCourseRating = async (
+  authUserId: string,
+  courseId: string
+): Promise<IUserCourseRating | null> => {
+  return await UserCourseRating.findOne({ courseId, user: authUserId });
+};
+
 export const CourseService = {
   insertIntoDb,
   getAllFromDb,
@@ -218,4 +225,5 @@ export const CourseService = {
   updateOneById,
   deleteOneById,
   addCourseRating,
+  getUserCourseRating,
 };
