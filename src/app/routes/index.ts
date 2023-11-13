@@ -27,7 +27,6 @@ const moduleRoutes: IModuleRoute[] = [
   { path: "/course-progress", route: UserCourseProgressRoutes },
   { path: "/profile", route: ProfileRoutes },
   { path: "/course-reviews", route: CourseReviewRoutes },
-  { path: "/feedbacks", route: FeedbackRoutes },
   { path: "/admin-dashboard", route: AdminDashboardRoutes },
 ];
 
