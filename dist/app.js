@@ -14,7 +14,7 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 // Express App
 const app = (0, express_1.default)();
 // Using cors
-app.use((0, cors_1.default)({ origin: "http://localhost:3000", credentials: true }));
+app.use((0, cors_1.default)({ origin: "https://brevemod-frontend.vercel.app/", credentials: true }));
 // Parser
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));

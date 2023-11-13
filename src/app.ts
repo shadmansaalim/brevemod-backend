@@ -12,7 +12,9 @@ import cookieParser from "cookie-parser";
 const app: Application = express();
 
 // Using cors
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(
+  cors({ origin: "https://brevemod-frontend.vercel.app", credentials: true })
+);
 
 // Parser
 app.use(express.json());
