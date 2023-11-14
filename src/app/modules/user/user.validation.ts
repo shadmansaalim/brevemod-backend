@@ -28,15 +28,9 @@ const create = z.object({
 
 const update = z.object({
   body: z.object({
-    firstName: z
-      .string()
-      .min(4, "First Name must have at least 4 characters")
-      .optional(),
+    firstName: z.string().min(4, "First Name must have at least 4 characters"),
     middleName: z.string().optional(),
-    lastName: z
-      .string()
-      .min(4, "Last Name must have at least 4 characters")
-      .optional(),
+    lastName: z.string().min(4, "Last Name must have at least 4 characters"),
     role: z
       .enum(Object.values(ENUM_USER_ROLES) as [string, ...string[]])
       .optional(),
