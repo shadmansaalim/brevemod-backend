@@ -5,7 +5,6 @@ import { User } from "../user/user.model";
 import httpStatus from "http-status";
 import { PaymentHelpers } from "../../../helpers/paymentHelper";
 import { currency, payment_method_types } from "../../../constants/common";
-import { IUser } from "../user/user.interface";
 import { Course } from "../course/course.model";
 import { ICourse } from "../course/course.interface";
 import { Cart } from "../cart/cart.model";

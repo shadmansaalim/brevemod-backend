@@ -58,6 +58,7 @@ const getAllDocuments = async (
   const baseQuery = model
     .find(findConditions)
     .sort(sortingCondition)
+    .sort({ createdAt: "asc" })
     .skip(skip)
     .limit(limit);
 

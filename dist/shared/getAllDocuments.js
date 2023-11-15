@@ -62,6 +62,7 @@ const getAllDocuments = (filters, paginationOptions, searchableFields, model, fi
     const baseQuery = model
         .find(findConditions)
         .sort(sortingCondition)
+        .sort({ createdAt: "asc" })
         .skip(skip)
         .limit(limit);
     // Checking if fields needs to be populated
