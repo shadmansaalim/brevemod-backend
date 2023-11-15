@@ -64,8 +64,6 @@ const deleteOneById = async (id: string): Promise<ICourse | null> => {
     courses: { $elemMatch: { $eq: new Types.ObjectId(id) } },
   });
 
-  console.log(anyPurchase);
-
   // Throwing error if admin tries to delete a course where students are enrolled
   if (anyPurchase) {
     throw new ApiError(

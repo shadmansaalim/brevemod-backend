@@ -5,6 +5,8 @@ import { CourseModule } from "./courseModule.model";
 import ApiError from "../../../errors/ApiError";
 import httpStatus from "http-status";
 import { ENUM_USER_ROLES } from "../../../enums/users";
+import mongoose from "mongoose";
+import { UserCourseProgress } from "../userCourseProgress/userCourseProgress.model";
 
 const createCourseModule = async (
   payload: ICourseModule
@@ -46,24 +48,114 @@ const addContentToCourseModule = async (
   });
 
   // Throwing error if course module not found
-  if (!courseModule) {
+  if (courseModule === null) {
     throw new ApiError(httpStatus.NOT_FOUND, "Course Module does not exists.");
   }
 
-  // Adding the content to course module
-  const result = await CourseModule.findOneAndUpdate(
-    { _id: new Types.ObjectId(moduleId) },
-    {
-      $push: {
-        moduleContents: {
-          ...payload,
+  let newModuleData: ICourseModule | null = null;
+
+  // Mongoose session started
+  const session = await mongoose.startSession();
+
+  try {
+    // Starting Transaction
+    session.startTransaction();
+
+    // Adding the content to course module
+    newModuleData = await CourseModule.findOneAndUpdate(
+      { _id: new Types.ObjectId(moduleId) },
+      {
+        $push: {
+          moduleContents: { ...payload },
         },
       },
-    },
-    { new: true }
-  );
+      { new: true }
+    );
 
-  return result;
+    if (!newModuleData) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "Failed to add new content.");
+    }
+
+    const newAddedContent =
+      newModuleData.moduleContents[newModuleData.moduleContents.length - 1];
+
+    if (!newAddedContent) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "Failed to add new content.");
+    }
+
+    // Total module contents for this course
+    const totalModuleContents = await CourseModule.aggregate([
+      {
+        $match: { courseId: new Types.ObjectId(newModuleData.courseId) },
+      },
+      {
+        $project: {
+          moduleContentsCount: { $size: "$moduleContents" },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: "$moduleContentsCount" },
+        },
+      },
+    ]);
+
+    const newTotalContentCount = totalModuleContents[0].count;
+
+    // Find all users course progresses for this course
+    const usersCourseProgresses = await UserCourseProgress.find({
+      courseId: newModuleData.courseId,
+    });
+
+    // Updating each user course progress data
+    usersCourseProgresses.forEach(async (data) => {
+      if (data.percentage === 100) {
+        data.current = {
+          moduleId: (newModuleData as ICourseModule)._id,
+          moduleNumber: (newModuleData as ICourseModule).moduleNumber,
+          contentId: newAddedContent._id,
+        };
+      }
+
+      // User new progress percentage
+      data.percentage = Math.round(
+        (data.completedContentCount / newTotalContentCount) * 100
+      );
+
+      const updateProgress = await UserCourseProgress.findOneAndUpdate(
+        {
+          user: data.user,
+          courseId: data.courseId,
+        },
+        data,
+        { new: true }
+      );
+
+      if (!updateProgress) {
+        throw new ApiError(
+          httpStatus.BAD_REQUEST,
+          "Failed to update user new progress data."
+        );
+      }
+    });
+
+    // Committing Transaction
+    await session.commitTransaction();
+
+    // Ending Session
+    await session.endSession();
+  } catch (error) {
+    // Aborting Transaction because of error
+    await session.abortTransaction();
+    // Ending Session because of error
+    await session.endSession();
+
+    // Throwing error
+    throw error;
+  }
+
+  return newModuleData;
 };
 
 const updateContentInCourseModule = async (
