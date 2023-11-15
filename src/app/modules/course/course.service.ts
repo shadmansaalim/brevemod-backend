@@ -59,56 +59,22 @@ const updateOneById = async (
 };
 
 const deleteOneById = async (id: string): Promise<ICourse | null> => {
-  // Finding users those who purchased the course
-  const studentsOfThisCourse = await Purchase.find({
+  // Checking if any user purchased this course
+  const anyPurchase = await Purchase.findOne({
     courses: { $elemMatch: { $eq: new Types.ObjectId(id) } },
   });
 
-  // Deleting the course if no students enrolled in this course
-  if (!studentsOfThisCourse) {
-    return await Course.findOneAndDelete({ _id: id });
-  }
+  console.log(anyPurchase);
 
-  let deletedCourseData = null;
-
-  // Mongoose session started
-  const session = await mongoose.startSession();
-
-  try {
-    // Starting Transaction
-    session.startTransaction();
-
-    // Removing this course from students purchases
-    await Purchase.updateMany(
-      { courses: new Types.ObjectId(id) },
-      { $pull: { courses: new Types.ObjectId(id) } },
-      { multi: true }
+  // Throwing error if admin tries to delete a course where students are enrolled
+  if (anyPurchase) {
+    throw new ApiError(
+      httpStatus.NOT_ACCEPTABLE,
+      "There are students who purchased this course for which we cannot remove it from our system."
     );
-
-    // Removing all the ratings of the course
-    await UserCourseRating.deleteMany({ course: new Types.ObjectId(id) });
-
-    // Deleting the course
-    deletedCourseData = await Course.findOneAndDelete({
-      _id: new Types.ObjectId(id),
-    });
-
-    // Committing Transaction
-    await session.commitTransaction();
-
-    // Ending Session
-    await session.endSession();
-  } catch (error) {
-    // Aborting Transaction because of error
-    await session.abortTransaction();
-    // Ending Session because of error
-    await session.endSession();
-
-    // Throwing error
-    throw error;
   }
 
-  return deletedCourseData;
+  return await Course.findOneAndDelete({ _id: id });
 };
 
 const addCourseRating = async (
