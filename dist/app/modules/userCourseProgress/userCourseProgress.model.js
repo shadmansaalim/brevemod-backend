@@ -27,7 +27,7 @@ const userCourseProgressSchema = new mongoose_1.Schema({
                     required: true,
                 },
                 contentId: {
-                    type: String,
+                    type: mongoose_1.Schema.Types.ObjectId,
                     required: true,
                 },
             },
@@ -45,7 +45,7 @@ const userCourseProgressSchema = new mongoose_1.Schema({
             required: true,
         },
         contentId: {
-            type: String,
+            type: mongoose_1.Schema.Types.ObjectId,
             required: true,
         },
     },

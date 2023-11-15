@@ -149,8 +149,9 @@ const purchaseCourse = (authUserId) => __awaiter(void 0, void 0, void 0, functio
         if (!resetCart) {
             throw new ApiError_1.default(http_status_1.default.BAD_REQUEST, `Failed to purchase courses.`);
         }
+        const newPurchaseDataCourses = newPurchaseData.courses;
         // Updating student count for each courses
-        newPurchaseData.courses.forEach((courseId) => __awaiter(void 0, void 0, void 0, function* () {
+        for (const courseId of newPurchaseDataCourses) {
             const purchasingCourse = yield course_model_1.Course.findOne({
                 _id: courseId,
             });
@@ -166,7 +167,7 @@ const purchaseCourse = (authUserId) => __awaiter(void 0, void 0, void 0, functio
             if (!updateCourse) {
                 throw new ApiError_1.default(http_status_1.default.BAD_REQUEST, `Something went wrong.`);
             }
-        }));
+        }
         // Committing Transaction
         yield session.commitTransaction();
         // Ending Session

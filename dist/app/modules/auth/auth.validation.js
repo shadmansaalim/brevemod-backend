@@ -6,31 +6,41 @@ const zod_1 = require("zod");
 // Validation of API request using ZOD
 const signUpZodSchema = zod_1.z.object({
     body: zod_1.z.object({
-        firstName: zod_1.z.string({
+        firstName: zod_1.z
+            .string({
             required_error: "First Name is required",
-        }),
+        })
+            .min(4, "First Name must have at least 4 characters"),
         middleName: zod_1.z.string().optional(),
-        lastName: zod_1.z.string({
+        lastName: zod_1.z
+            .string({
             required_error: "Last Name is required",
-        }),
+        })
+            .min(4, "Last Name must have at least 4 characters"),
         email: zod_1.z
             .string({
             required_error: "Email is required",
         })
             .email(),
-        password: zod_1.z.string({
+        password: zod_1.z
+            .string({
             required_error: "Password is required",
-        }),
+        })
+            .min(6, "Password must have at least 6 characters"),
     }),
 });
 const loginZodSchema = zod_1.z.object({
     body: zod_1.z.object({
-        email: zod_1.z.string({
+        email: zod_1.z
+            .string({
             required_error: "Email is required.",
-        }),
-        password: zod_1.z.string({
+        })
+            .email(),
+        password: zod_1.z
+            .string({
             required_error: "Password is required.",
-        }),
+        })
+            .min(6, "Password must have at least 6 characters"),
     }),
 });
 const refreshTokenZodSchema = zod_1.z.object({
@@ -42,12 +52,16 @@ const refreshTokenZodSchema = zod_1.z.object({
 });
 const changePasswordZodSchema = zod_1.z.object({
     body: zod_1.z.object({
-        oldPassword: zod_1.z.string({
+        oldPassword: zod_1.z
+            .string({
             required_error: "Old Password is required.",
-        }),
-        newPassword: zod_1.z.string({
+        })
+            .min(6, "Password must have at least 6 characters"),
+        newPassword: zod_1.z
+            .string({
             required_error: "New Password is required.",
-        }),
+        })
+            .min(6, "Password must have at least 6 characters"),
     }),
 });
 exports.AuthValidation = {

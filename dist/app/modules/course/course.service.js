@@ -47,42 +47,15 @@ const updateOneById = (id, payload) => __awaiter(void 0, void 0, void 0, functio
     });
 });
 const deleteOneById = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    // Finding users those who purchased the course
-    const studentsOfThisCourse = yield purchase_model_1.Purchase.find({
+    // Checking if any user purchased this course
+    const anyPurchase = yield purchase_model_1.Purchase.findOne({
         courses: { $elemMatch: { $eq: new mongoose_1.Types.ObjectId(id) } },
     });
-    // Deleting the course if no students enrolled in this course
-    if (!studentsOfThisCourse) {
-        return yield course_model_1.Course.findOneAndDelete({ _id: id });
+    // Throwing error if admin tries to delete a course where students are enrolled
+    if (anyPurchase) {
+        throw new ApiError_1.default(http_status_1.default.NOT_ACCEPTABLE, "There are students who purchased this course for which we cannot remove it from our system.");
     }
-    let deletedCourseData = null;
-    // Mongoose session started
-    const session = yield mongoose_2.default.startSession();
-    try {
-        // Starting Transaction
-        session.startTransaction();
-        // Removing this course from students purchases
-        yield purchase_model_1.Purchase.updateMany({ courses: new mongoose_1.Types.ObjectId(id) }, { $pull: { courses: new mongoose_1.Types.ObjectId(id) } }, { multi: true });
-        // Removing all the ratings of the course
-        yield userCourseRating_model_1.UserCourseRating.deleteMany({ course: new mongoose_1.Types.ObjectId(id) });
-        // Deleting the course
-        deletedCourseData = yield course_model_1.Course.findOneAndDelete({
-            _id: new mongoose_1.Types.ObjectId(id),
-        });
-        // Committing Transaction
-        yield session.commitTransaction();
-        // Ending Session
-        yield session.endSession();
-    }
-    catch (error) {
-        // Aborting Transaction because of error
-        yield session.abortTransaction();
-        // Ending Session because of error
-        yield session.endSession();
-        // Throwing error
-        throw error;
-    }
-    return deletedCourseData;
+    return yield course_model_1.Course.findOneAndDelete({ _id: id });
 });
 const addCourseRating = (authUserId, courseId, rating) => __awaiter(void 0, void 0, void 0, function* () {
     // Finding user

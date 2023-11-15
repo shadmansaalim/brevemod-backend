@@ -109,7 +109,7 @@ const addContentToCourseModule = async (
     });
 
     // Updating each user course progress data
-    usersCourseProgresses.forEach(async (data) => {
+    for (const data of usersCourseProgresses) {
       if (data.percentage === 100) {
         data.current = {
           moduleId: (newModuleData as ICourseModule)._id,
@@ -138,7 +138,7 @@ const addContentToCourseModule = async (
           "Failed to update user new progress data."
         );
       }
-    });
+    }
 
     // Committing Transaction
     await session.commitTransaction();

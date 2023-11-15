@@ -200,8 +200,10 @@ const purchaseCourse = async (
       throw new ApiError(httpStatus.BAD_REQUEST, `Failed to purchase courses.`);
     }
 
+    const newPurchaseDataCourses = newPurchaseData.courses;
+
     // Updating student count for each courses
-    newPurchaseData.courses.forEach(async (courseId) => {
+    for (const courseId of newPurchaseDataCourses) {
       const purchasingCourse = await Course.findOne({
         _id: courseId,
       });
@@ -224,7 +226,7 @@ const purchaseCourse = async (
       if (!updateCourse) {
         throw new ApiError(httpStatus.BAD_REQUEST, `Something went wrong.`);
       }
-    });
+    }
 
     // Committing Transaction
     await session.commitTransaction();
