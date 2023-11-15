@@ -30,7 +30,7 @@ const userCourseProgressSchema = new Schema<IUserCourseProgress>(
             required: true,
           },
           contentId: {
-            type: String,
+            type: Schema.Types.ObjectId,
             required: true,
           },
         },
@@ -48,7 +48,7 @@ const userCourseProgressSchema = new Schema<IUserCourseProgress>(
         required: true,
       },
       contentId: {
-        type: String,
+        type: Schema.Types.ObjectId,
         required: true,
       },
     },

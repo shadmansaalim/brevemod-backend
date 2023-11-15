@@ -229,20 +229,159 @@ const deleteContentFromCourseModule = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Course Module does not exists.");
   }
 
-  const newModuleContents = courseModule.moduleContents.filter(
-    (content) => !content._id.equals(contentId)
-  );
+  let newModuleData: ICourseModule | null = null;
 
-  // Updating content
-  const result = await CourseModule.findOneAndUpdate(
-    { _id: moduleId },
-    {
-      moduleContents: newModuleContents,
-    },
-    { new: true }
-  );
+  // Mongoose session started
+  const session = await mongoose.startSession();
 
-  return result;
+  try {
+    // Starting Transaction
+    session.startTransaction();
+
+    // Current content index
+    const currentContentIndex = courseModule.moduleContents.findIndex(
+      (content) => content._id.equals(contentId)
+    );
+
+    const previousContent =
+      courseModule?.moduleContents[currentContentIndex - 1];
+
+    const previousModule = await CourseModule.findOne({
+      moduleNumber: courseModule.moduleNumber - 1,
+    });
+
+    if (!previousContent && !previousModule) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "This is the last content in course. Courses should have at least one content for students."
+      );
+    }
+
+    // Total module contents for this course
+    const totalModuleContents = await CourseModule.aggregate([
+      {
+        $match: { courseId: new Types.ObjectId(courseModule.courseId) },
+      },
+      {
+        $project: {
+          moduleContentsCount: { $size: "$moduleContents" },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: "$moduleContentsCount" },
+        },
+      },
+    ]);
+
+    const newTotalContentCount = totalModuleContents[0].count - 1;
+
+    // Find all users course progresses for this course
+    const usersCourseProgresses = await UserCourseProgress.find({
+      courseId: courseModule.courseId,
+    });
+
+    // Updating each user course progress data
+    for (const data of usersCourseProgresses) {
+      // Check if user current content is this removed one
+      if (data.current.contentId.equals(contentId)) {
+        if (currentContentIndex !== 0 && previousContent) {
+          data.current.contentId = previousContent._id;
+        } else {
+          if (!previousModule) {
+            throw new ApiError(
+              httpStatus.BAD_REQUEST,
+              "This is the last content in course. Courses should have at least one content for students."
+            );
+          }
+          const previousModuleLastContent =
+            previousModule.moduleContents[
+              previousModule.moduleContents.length - 1
+            ];
+
+          data.current.moduleId = previousModule._id;
+          data.current.moduleNumber = previousModule.moduleNumber;
+          data.current.contentId = previousModuleLastContent._id;
+        }
+      }
+
+      const didUserCompletedTheRemovedContent = data.completed.find((content) =>
+        content.contentId.equals(contentId)
+      );
+
+      if (didUserCompletedTheRemovedContent) {
+        const userNewCompleteList = data.completed.filter(
+          (content) => !content.contentId.equals(contentId)
+        );
+
+        data.completed = [...userNewCompleteList];
+        data.completedContentCount -= 1;
+      }
+
+      // User new progress percentage
+      data.percentage = Math.round(
+        (data.completedContentCount / newTotalContentCount) * 100
+      );
+
+      const updateProgress = await UserCourseProgress.findOneAndUpdate(
+        {
+          user: data.user,
+          courseId: data.courseId,
+        },
+        data,
+        { new: true }
+      );
+
+      if (!updateProgress) {
+        throw new ApiError(
+          httpStatus.BAD_REQUEST,
+          "Failed to update user new progress data."
+        );
+      }
+    }
+
+    if (currentContentIndex === 0) {
+      newModuleData = await CourseModule.findOneAndDelete({ _id: moduleId });
+    } else {
+      // Removing content
+      const newModuleContents = courseModule.moduleContents.filter(
+        (content) => !content._id.equals(contentId)
+      );
+
+      // Updating module
+      newModuleData = await CourseModule.findOneAndUpdate(
+        { _id: moduleId },
+        {
+          moduleContents: newModuleContents,
+        },
+        { new: true }
+      );
+
+      if (!newModuleData) {
+        throw new ApiError(
+          httpStatus.BAD_REQUEST,
+          "Failed to remove the content."
+        );
+      }
+    }
+
+    // Committing Transaction
+    await session.commitTransaction();
+
+    // Ending Session
+    await session.endSession();
+  } catch (error) {
+    // Aborting Transaction because of error
+    await session.abortTransaction();
+    // Ending Session because of error
+    await session.endSession();
+
+    // Throwing error
+    throw error;
+  }
+
+  return newModuleData;
 };
 
 const getAllModulesByCourse = async (
