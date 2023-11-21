@@ -103,6 +103,7 @@ const updateUserCourseProgress = async (
   else {
     // Next module
     const nextModule = await CourseModule.findOne({
+      courseId,
       moduleNumber: currentModule.moduleNumber + 1,
     });
 
