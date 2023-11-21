@@ -83,6 +83,7 @@ const updateUserCourseProgress = (userId, courseId) => __awaiter(void 0, void 0,
     else {
         // Next module
         const nextModule = yield courseModule_model_1.CourseModule.findOne({
+            courseId,
             moduleNumber: currentModule.moduleNumber + 1,
         });
         // Throwing error if there is no next module
