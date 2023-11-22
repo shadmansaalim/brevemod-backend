@@ -343,6 +343,20 @@ const deleteContentFromCourseModule = async (
 
     if (currentContentIndex === 0) {
       newModuleData = await CourseModule.findOneAndDelete({ _id: moduleId });
+
+      if (!newModuleData) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Failed to remove content.");
+      }
+
+      // Update the serial numbers of the remaining documents
+      const updatingModuleNumber = await CourseModule.updateMany(
+        { moduleNumber: { $gt: newModuleData.moduleNumber } },
+        { $inc: { moduleNumber: -1 } }
+      );
+
+      if (!updatingModuleNumber) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Failed to remove content.");
+      }
     } else {
       // Removing content
       const newModuleContents = courseModule.moduleContents.filter(
