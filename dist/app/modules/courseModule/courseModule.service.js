@@ -232,6 +232,14 @@ const deleteContentFromCourseModule = (moduleId, contentId) => __awaiter(void 0,
         }
         if (currentContentIndex === 0) {
             newModuleData = yield courseModule_model_1.CourseModule.findOneAndDelete({ _id: moduleId });
+            if (!newModuleData) {
+                throw new ApiError_1.default(http_status_1.default.BAD_REQUEST, "Failed to remove content.");
+            }
+            // Update the serial numbers of the remaining documents
+            const updatingModuleNumber = yield courseModule_model_1.CourseModule.updateMany({ moduleNumber: { $gt: newModuleData.moduleNumber } }, { $inc: { moduleNumber: -1 } });
+            if (!updatingModuleNumber) {
+                throw new ApiError_1.default(http_status_1.default.BAD_REQUEST, "Failed to remove content.");
+            }
         }
         else {
             // Removing content
