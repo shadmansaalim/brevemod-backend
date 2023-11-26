@@ -1,24 +1,39 @@
 // Imports
 import express, { Application, NextFunction, Request, Response } from "express";
 import cors from "cors";
-import globalErrorHandler from "./app/middlewares/globalErrorHandler";
-
-// Application Routes
 import routes from "./app/routes";
 import httpStatus from "http-status";
 import cookieParser from "cookie-parser";
 import config from "./config";
+import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 
 // Express App
-const app: Application = express();
+export const app: Application = express();
 
 // Using cors
 app.use(
   cors({
-    origin:
-      config.env === "development"
-        ? config.development_frontend_url
-        : config.production_frontend_url,
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        config.production_frontend_url,
+        config.development_frontend_url,
+        config.graphql_sandbox_development_url,
+      ];
+
+      if (
+        config.env === "development" &&
+        (!origin || allowedOrigins.includes(origin))
+      ) {
+        callback(null, true);
+      } else if (
+        config.env !== "development" &&
+        allowedOrigins.includes(origin)
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
@@ -37,18 +52,23 @@ app.use(globalErrorHandler);
 
 // Handle NOT FOUND Route
 app.use((req: Request, res: Response, next: NextFunction) => {
+  // Check if the requested path is /graphql
+  if (req.originalUrl === "/graphql") {
+    // If it is /graphql, pass the control to the next middleware (Apollo Server)
+    return next();
+  }
+
+  // If it's not /graphql, treat it as Not Found
   res.status(httpStatus.NOT_FOUND).json({
     success: false,
     message: "Not Found.",
     errorMessages: [
       {
         path: req.originalUrl,
-        message: "API Route doesn't exists.",
+        message: "API Route doesn't exist.",
       },
     ],
   });
-
-  next();
 });
 
 export default app;

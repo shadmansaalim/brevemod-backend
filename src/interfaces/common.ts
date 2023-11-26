@@ -1,5 +1,8 @@
 //Imports
 import { IGenericErrorMessage } from "./error";
+import { Types } from "mongoose";
+import { ENUM_USER_ROLES } from "../enums/users";
+import { JwtPayload } from "jsonwebtoken";
 
 // Error response format
 export type IGenericErrorResponse = {
@@ -23,3 +26,7 @@ export type IGenericResponse<T> = {
 export type ConditionalOptions<T, K extends keyof T> = T[K] extends null
   ? []
   : [T[K]];
+
+export interface Context {
+  user: JwtPayload | null;
+}
