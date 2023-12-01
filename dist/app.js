@@ -16,9 +16,24 @@ const globalErrorHandler_1 = __importDefault(require("./app/middlewares/globalEr
 exports.app = (0, express_1.default)();
 // Using cors
 exports.app.use((0, cors_1.default)({
-    origin: config_1.default.env === "development"
-        ? config_1.default.development_frontend_url
-        : config_1.default.production_frontend_url,
+    origin: function (origin, callback) {
+        const allowedOrigins = [
+            config_1.default.production_frontend_url,
+            config_1.default.development_frontend_url,
+            config_1.default.graphql_sandbox_development_url,
+        ];
+        if (config_1.default.env === "development" &&
+            (!origin || allowedOrigins.includes(origin))) {
+            callback(null, true);
+        }
+        else if (config_1.default.env !== "development" &&
+            allowedOrigins.includes(origin)) {
+            callback(null, true);
+        }
+        else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     credentials: true,
 }));
 // Parser
