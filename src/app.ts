@@ -13,10 +13,27 @@ export const app: Application = express();
 // Using cors
 app.use(
   cors({
-    origin:
-      config.env === "development"
-        ? config.development_frontend_url
-        : config.production_frontend_url,
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        config.production_frontend_url,
+        config.development_frontend_url,
+        config.graphql_sandbox_development_url,
+      ];
+
+      if (
+        config.env === "development" &&
+        (!origin || allowedOrigins.includes(origin))
+      ) {
+        callback(null, true);
+      } else if (
+        config.env !== "development" &&
+        allowedOrigins.includes(origin)
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
