@@ -34,10 +34,10 @@ const postSchema = new Schema<IPost>(
       type: String,
       required: true,
     },
-    media: {
-      type: postMediaSchema,
-      default: null,
-    },
+    // media: {
+    //   type: postMediaSchema,
+    //   default: null,
+    // },
     authorId: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -47,17 +47,6 @@ const postSchema = new Schema<IPost>(
       type: Boolean,
       default: true,
     },
-    parent: {
-      type: Schema.Types.ObjectId,
-      ref: "Post",
-      default: null,
-    },
-    children: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Post",
-      },
-    ],
     reactions: {
       type: [postReactionSchema],
       default: [],
@@ -67,19 +56,5 @@ const postSchema = new Schema<IPost>(
     timestamps: true,
   }
 );
-
-// Setting the default value for children and reactions in the constructor
-postSchema.pre<IPost>("save", function (next) {
-  const children = this.children;
-  const reactions = this.reactions;
-
-  if (!children) {
-    this.children = [];
-  }
-  if (!reactions) {
-    this.reactions = [];
-  }
-  next();
-});
 
 export const Post = model<IPost, PostModel>("Post", postSchema);

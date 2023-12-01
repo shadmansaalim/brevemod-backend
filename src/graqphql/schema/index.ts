@@ -1,26 +1,23 @@
 export const typeDefs = `#graphql
+  scalar Upload
   type Query {
-    posts: PostQueryResponse
+    posts(filter: String!): PostQueryResponse
   }
   type Mutation {
     addPost(post: PostInput!):PostMutationResponse
     updatePost(postId: ID! post: PostInput!):PostMutationResponse
     deletePost(postId: ID!):PostMutationResponse
+    reactPost(postId: ID! reaction:String!): PostMutationResponse
+    removeReactionFromPost(postId: ID!): PostMutationResponse
   }
   type Post {
     _id: ID!
     content: String!
-    media: MediaType
     author: User!
     createdAt: String!
+    updatedAt: String!
     published: Boolean!
-    parent: ID
-    children: [ID]
     reactions: [ReactionType]
-  }
-  type MediaType {
-    type: String!
-    url: String!
   }
   type ReactionType {
     react: String!
@@ -28,6 +25,7 @@ export const typeDefs = `#graphql
   }
   type User{
     _id: ID!
+    role: String!
     firstName: String!
     middleName: String
     lastName: String!
@@ -48,6 +46,6 @@ export const typeDefs = `#graphql
     data: Post!
   }
   input PostInput {
-    content: String
+    content: String!
   }
 `;

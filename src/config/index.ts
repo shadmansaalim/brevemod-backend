@@ -21,4 +21,9 @@ export default {
   development_frontend_url: process.env.DEVELOPMENT_FRONTEND_URL,
   production_frontend_url: process.env.PRODUCTION_FRONTEND_URL,
   graphql_sandbox_development_url: process.env.GRAPHQL_SANDBOX_DEVELOPMENT_URL,
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    apiSecret: process.env.CLOUDINARY_API_SECRET,
+  },
 };
