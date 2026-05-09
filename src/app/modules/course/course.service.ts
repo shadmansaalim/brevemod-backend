@@ -14,6 +14,8 @@ import httpStatus from "http-status";
 import { Purchase } from "../purchase/purchase.model";
 import { UserCourseRating } from "../userCourseRating/userCourseRating.model";
 import { IUserCourseRating } from "../userCourseRating/userCourseRating.interface";
+import { openai } from "../../../helpers/openRouter";
+import { extractJsonFromMessage } from "../../../helpers/extractJsonFromMessage";
 
 const insertIntoDb = async (payload: ICourse): Promise<ICourse> => {
   return await Course.create(payload);
@@ -182,6 +184,79 @@ const getUserCourseRating = async (
   return await UserCourseRating.findOne({ courseId, user: authUserId });
 };
 
+// This will give suggestions to the user which courses to do for the given job description
+const getAISuggestions = async (payload: { jobDescription: string }) => {
+  if (!(payload && payload?.jobDescription)) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "You need to pass the job description for which you want AI suggestions."
+    );
+  }
+
+  // Get all courses
+  const courses = await Course.find({});
+
+  if (!courses.length) {
+    throw new ApiError(httpStatus.NOT_FOUND, "No courses available.");
+  }
+
+  // Format courses for the prompt
+  const courseList = courses
+    .map(
+      (course, index) =>
+        `${index + 1}. ID: ${course._id}
+     Title: ${course.title}
+     Description: ${course.description}`
+    )
+    .join("\n\n");
+
+  const prompt = `You are a career advisor. Based on the job description below, recommend the most relevant courses from the provided list.
+  
+    Job Description: ${payload.jobDescription}
+    
+    Available Courses: ${courseList}
+    
+    Instructions:
+    - Analyze the skills and requirements in the job description.
+    - Select a maximum of 3 most relevant courses only.
+    - Return your response as a JSON array using this exact structure:
+    [
+      {
+        "courseId": "<course _id>",
+        "reason": "<why this course is relevant to the job description>"
+      }
+    ]`;
+
+  const completion = await openai.chat.completions.create({
+    model: "z-ai/glm-4.5-air:free",
+    messages: [
+      {
+        role: "system",
+        content: "You are a career advisor that provides courses suggestions.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+  });
+
+  const suggestions: { courseId: string; reason: string }[] =
+    await extractJsonFromMessage(completion.choices[0].message);
+
+  // Map suggestions back to full course objects
+  const courseMap = new Map(courses.map((c) => [c._id.toString(), c]));
+
+  const result = suggestions
+    .filter((s) => courseMap.has(s.courseId))
+    .map((s) => ({
+      course: courseMap.get(s.courseId),
+      reason: s.reason,
+    }));
+
+  return result;
+};
+
 export const CourseService = {
   insertIntoDb,
   getAllFromDb,
@@ -190,4 +265,5 @@ export const CourseService = {
   deleteOneById,
   addCourseRating,
   getUserCourseRating,
+  getAISuggestions,
 };

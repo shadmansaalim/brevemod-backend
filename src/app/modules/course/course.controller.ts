@@ -113,6 +113,17 @@ const getUserCourseRating = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAISuggestions = catchAsync(async (req: Request, res: Response) => {
+  const result = await CourseService.getAISuggestions(req.body);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "AI Course Suggestions retrieved successfully.",
+    data: result,
+  });
+});
+
 export const CourseController = {
   insertIntoDb,
   getAllFromDb,
@@ -121,4 +132,5 @@ export const CourseController = {
   deleteOneById,
   addCourseRating,
   getUserCourseRating,
+  getAISuggestions,
 };
