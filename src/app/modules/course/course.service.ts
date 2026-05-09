@@ -203,7 +203,7 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
     }
 
     // Get all courses
-    const courses = await Course.find({});
+    const courses = await Course.find({}).select("title description");
 
     if (!courses.length) {
       throw new ApiError(httpStatus.NOT_FOUND, "No courses available.");
