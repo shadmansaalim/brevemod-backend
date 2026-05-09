@@ -202,60 +202,6 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
       );
     }
 
-    // Extract keywords from JD
-    const extractKeywords = async (jobDescription: string): Promise<string> => {
-      try {
-        console.log("EXTRACTING KEYWORDS FROM JOB DESCRIPTION");
-
-        const completion = await withApiKeyFallback((client) =>
-          client.chat.completions.create({
-            model: "nvidia/nemotron-3-super-120b-a12b:free",
-            messages: [
-              {
-                role: "system",
-                content: "You are a keyword extraction assistant.",
-              },
-              {
-                role: "user",
-                content: `
-Extract a maximum of 5 most important technical skills or tools from the following job description.
-
-Return ONLY a comma-separated list of keywords, nothing else.
-No explanation, no bullet points, no markdown.
-
-Job Description:
-${jobDescription}
-                `,
-              },
-            ],
-            temperature: 0.2,
-          })
-        );
-
-        const keywords = completion?.choices?.[0]?.message?.content?.trim();
-
-        if (!keywords) {
-          throw new ApiError(
-            httpStatus.BAD_GATEWAY,
-            "Failed to extract keywords from AI response."
-          );
-        }
-
-        return keywords;
-      } catch (error: any) {
-        console.error("KEYWORD EXTRACTION ERROR:", error);
-
-        if (error instanceof ApiError) {
-          throw error;
-        }
-
-        throw new ApiError(
-          httpStatus.BAD_GATEWAY,
-          "Failed to process job description using AI."
-        );
-      }
-    };
-
     // Get all courses
     const courses = await Course.find({});
 
@@ -263,48 +209,32 @@ ${jobDescription}
       throw new ApiError(httpStatus.NOT_FOUND, "No courses available.");
     }
 
-    // Extract keywords
-    const keywords = await extractKeywords(payload.jobDescription);
-
-    // Format courses
+    // Format courses for the prompt
     const courseList = courses
       .map(
-        (course, index) => `
-${index + 1}.
-ID: ${course._id}
-Title: ${course.title}
-Description: ${course.description}
-      `
+        (course, index) =>
+          `${index + 1}. ID: ${course._id}
+   Title: ${course.title}
+   Description: ${course.description}`
       )
-      .join("\n");
+      .join("\n\n");
 
-    const finalPrompt = `
-You are a career advisor.
-
-Based on the required skills and keywords below, recommend the most relevant courses.
-
-Required Skills & Keywords:
-${keywords}
-
-Available Courses:
-${courseList}
-
-Instructions:
-- Select a maximum of 3 most relevant courses only.
-- Return ONLY a JSON array.
-- No markdown.
-- No explanation.
-
-Example Response:
-[
-  {
-    "courseId": "course_id_here",
-    "reason": "This course teaches React and TypeScript which are required for the role."
-  }
-]
-    `;
-
-    console.log("GETTING COURSES FROM KEYWORDS");
+    const prompt = `You are a career advisor. Based on the job description below, recommend the most relevant courses from the provided list.
+  
+      Job Description: ${payload.jobDescription}
+      
+      Available Courses: ${courseList}
+      
+      Instructions:
+      - Analyze the skills and requirements in the job description.
+      - Select a maximum of 3 most relevant courses only.
+      - Return your response as a JSON array using this exact structure:
+      [
+        {
+          "courseId": "<course _id>",
+          "reason": "<why this course is relevant to the job description>"
+        }
+      ]`;
 
     let completion;
 
@@ -316,14 +246,13 @@ Example Response:
             {
               role: "system",
               content:
-                "You are a career advisor that provides course suggestions.",
+                "You are a career advisor that provides courses suggestions.",
             },
             {
               role: "user",
-              content: finalPrompt,
+              content: prompt,
             },
           ],
-          temperature: 0.3,
         })
       );
     } catch (error: any) {
