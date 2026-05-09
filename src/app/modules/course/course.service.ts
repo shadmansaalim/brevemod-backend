@@ -241,7 +241,7 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
     )
     .join("\n\n");
 
-  const prompt = `You are a career advisor. Based on the required skills and keywords below, recommend the most relevant courses.
+  const finalPrompt = `You are a career advisor. Based on the required skills and keywords below, recommend the most relevant courses.
   
   Required Skills & Keywords: ${keywords}
   
@@ -269,7 +269,7 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
         },
         {
           role: "user",
-          content: prompt,
+          content: finalPrompt,
         },
       ],
     })
