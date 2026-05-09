@@ -14,7 +14,7 @@
   ],
   "functions": {
     "dist/server.js": {
-      "maxDuration": 60
+      "maxDuration": 300
     }
   }
 }
