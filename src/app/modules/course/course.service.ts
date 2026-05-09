@@ -195,6 +195,7 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
   }
 
   const extractKeywords = async (jobDescription: string): Promise<string> => {
+    console.log("EXTRACTING KEYWORDS FROM JOB DESCRIPTION");
     const completion = await withApiKeyFallback((client) =>
       client.chat.completions.create({
         model: "nvidia/nemotron-3-super-120b-a12b:free",
@@ -258,6 +259,7 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
     }
   ]`;
 
+  console.log("GETTING COURSES FROM KEYWORDS");
   const completion = await withApiKeyFallback((client) =>
     client.chat.completions.create({
       model: "nvidia/nemotron-3-super-120b-a12b:free",
@@ -297,6 +299,8 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
         reason: suggestionsReasonMap.get(String(course._id)),
       };
     });
+
+  console.log("RETURNING RESULT");
 
   return result;
 };
