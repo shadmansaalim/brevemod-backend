@@ -20,6 +20,11 @@ app.use(
         config.graphql_sandbox_development_url,
       ];
 
+      console.log({
+        env: config.env,
+        allowedOrigins,
+      });
+
       if (
         config.env === "development" &&
         (!origin || allowedOrigins.includes(origin))
