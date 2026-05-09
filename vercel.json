@@ -1,14 +1,18 @@
 {
   "version": 2,
-  "functions": {
-    "dist/server.js": {
-      "maxDuration": 300
-    }
-  },
-  "rewrites": [
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "dist/server.js"
+      "src": "dist/server.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 300
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "dist/server.js"
     }
   ]
 }
