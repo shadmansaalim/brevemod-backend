@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Brevemod Backend",
   "main": "src/server.ts",
+  "engines": {
+    "node": ">=24.x"
+  },
   "scripts": {
     "start": "ts-node-dev --respawn --transpile-only src/server.ts",
     "lint:check": "eslint --ignore-path .eslintignore --ext .js,.ts .",
@@ -21,7 +24,7 @@
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.17",
     "@types/multer": "^1.4.11",
-    "@types/node": "^20.2.5",
+    "@types/node": "^24.0.0",
     "eslint-config-prettier": "^8.8.0",
     "husky": "^8.0.3",
     "lint": "^0.8.19",
