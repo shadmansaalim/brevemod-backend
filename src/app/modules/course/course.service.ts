@@ -18,6 +18,12 @@ import { openai } from "../../../helpers/openRouter";
 import { extractJsonFromMessage } from "../../../helpers/extractJsonFromMessage";
 import { withApiKeyFallback } from "../../../helpers/withApiKeyFallback";
 
+// Types
+type AISuggestion = {
+  courseId: Types.ObjectId;
+  reason: string;
+};
+
 const insertIntoDb = async (payload: ICourse): Promise<ICourse> => {
   return await Course.create(payload);
 };
@@ -187,123 +193,273 @@ const getUserCourseRating = async (
 
 // This will give suggestions to the user which courses to do for the given job description
 const getAISuggestions = async (payload: { jobDescription: string }) => {
-  if (!(payload && payload?.jobDescription)) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "You need to pass the job description for which you want AI suggestions."
-    );
-  }
-
-  const extractKeywords = async (jobDescription: string): Promise<string> => {
-    console.log("EXTRACTING KEYWORDS FROM JOB DESCRIPTION");
-    const completion = await withApiKeyFallback((client) =>
-      client.chat.completions.create({
-        model: "nvidia/nemotron-3-super-120b-a12b:free",
-        messages: [
-          {
-            role: "system",
-            content: "You are a keyword extraction assistant.",
-          },
-          {
-            role: "user",
-            content: `Extract a maximum of 5 most important technical skills or tools from the following job description.
-  Return ONLY a comma-separated list of keywords, nothing else. No explanation, no bullet points, no markdown.
-  
-  Job Description:
-  ${jobDescription}`,
-          },
-        ],
-      })
-    );
-
-    return completion.choices[0].message?.content?.trim() ?? jobDescription;
-  };
-
-  // Get all courses
-  const courses = await Course.find({});
-
-  if (!courses.length) {
-    throw new ApiError(httpStatus.NOT_FOUND, "No courses available.");
-  }
-
-  const keywords = await extractKeywords(payload.jobDescription);
-
-  if (!keywords) {
-    throw new ApiError(httpStatus.NOT_FOUND, "Something went wrong");
-  }
-
-  // Format courses for the prompt
-  const courseList = courses
-    .map(
-      (course, index) =>
-        `${index + 1}. ID: ${course._id}
-     Title: ${course.title}
-     Description: ${course.description}`
-    )
-    .join("\n\n");
-
-  const finalPrompt = `You are a career advisor. Based on the required skills and keywords below, recommend the most relevant courses.
-  
-  Required Skills & Keywords: ${keywords}
-  
-  Available Courses: ${courseList}
-  
-  Instructions:
-  - Select a maximum of 3 most relevant courses only.
-  - Return ONLY a JSON array, no markdown, no explanation:
-  
-  [
-    {
-      "courseId": "<course _id>",
-      "reason": "<why this course matches the required skills>"
+  try {
+    // Validate payload
+    if (!payload || !payload.jobDescription?.trim()) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "You need to pass the job description for which you want AI suggestions."
+      );
     }
-  ]`;
 
-  console.log("GETTING COURSES FROM KEYWORDS");
-  const completion = await withApiKeyFallback((client) =>
-    client.chat.completions.create({
-      model: "nvidia/nemotron-3-super-120b-a12b:free",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a career advisor that provides courses suggestions.",
-        },
-        {
-          role: "user",
-          content: finalPrompt,
-        },
-      ],
-    })
-  );
+    // Extract keywords from JD
+    const extractKeywords = async (jobDescription: string): Promise<string> => {
+      try {
+        console.log("EXTRACTING KEYWORDS FROM JOB DESCRIPTION");
 
-  const suggestions: { courseId: Types.ObjectId; reason: string }[] =
-    await extractJsonFromMessage(completion.choices[0].message);
+        const completion = await withApiKeyFallback((client) =>
+          client.chat.completions.create({
+            model: "nvidia/nemotron-3-super-120b-a12b:free",
+            messages: [
+              {
+                role: "system",
+                content: "You are a keyword extraction assistant.",
+              },
+              {
+                role: "user",
+                content: `
+Extract a maximum of 5 most important technical skills or tools from the following job description.
 
-  const suggestionsReasonMap = new Map(
-    suggestions.map((s) => [String(s.courseId), s.reason])
-  );
+Return ONLY a comma-separated list of keywords, nothing else.
+No explanation, no bullet points, no markdown.
 
-  const suggestedCourseIds = new Set(
-    suggestions.map((s) => String(s.courseId))
-  );
+Job Description:
+${jobDescription}
+                `,
+              },
+            ],
+            temperature: 0.2,
+          })
+        );
 
-  const result = courses
-    .filter((course) => suggestedCourseIds.has(String(course._id)))
-    .map((course) => {
-      const courseObj =
-        typeof course.toObject === "function" ? course.toObject() : course;
+        const keywords = completion?.choices?.[0]?.message?.content?.trim();
 
-      return {
-        ...courseObj,
-        reason: suggestionsReasonMap.get(String(course._id)),
-      };
-    });
+        if (!keywords) {
+          throw new ApiError(
+            httpStatus.BAD_GATEWAY,
+            "Failed to extract keywords from AI response."
+          );
+        }
 
-  console.log("RETURNING RESULT");
+        return keywords;
+      } catch (error: any) {
+        console.error("KEYWORD EXTRACTION ERROR:", error);
 
-  return result;
+        if (error instanceof ApiError) {
+          throw error;
+        }
+
+        throw new ApiError(
+          httpStatus.BAD_GATEWAY,
+          "Failed to process job description using AI."
+        );
+      }
+    };
+
+    // Get all courses
+    const courses = await Course.find({});
+
+    if (!courses.length) {
+      throw new ApiError(httpStatus.NOT_FOUND, "No courses available.");
+    }
+
+    // Extract keywords
+    const keywords = await extractKeywords(payload.jobDescription);
+
+    // Format courses
+    const courseList = courses
+      .map(
+        (course, index) => `
+${index + 1}.
+ID: ${course._id}
+Title: ${course.title}
+Description: ${course.description}
+      `
+      )
+      .join("\n");
+
+    const finalPrompt = `
+You are a career advisor.
+
+Based on the required skills and keywords below, recommend the most relevant courses.
+
+Required Skills & Keywords:
+${keywords}
+
+Available Courses:
+${courseList}
+
+Instructions:
+- Select a maximum of 3 most relevant courses only.
+- Return ONLY a JSON array.
+- No markdown.
+- No explanation.
+
+Example Response:
+[
+  {
+    "courseId": "course_id_here",
+    "reason": "This course teaches React and TypeScript which are required for the role."
+  }
+]
+    `;
+
+    console.log("GETTING COURSES FROM KEYWORDS");
+
+    let completion;
+
+    try {
+      completion = await withApiKeyFallback((client) =>
+        client.chat.completions.create({
+          model: "nvidia/nemotron-3-super-120b-a12b:free",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a career advisor that provides course suggestions.",
+            },
+            {
+              role: "user",
+              content: finalPrompt,
+            },
+          ],
+          temperature: 0.3,
+        })
+      );
+    } catch (error: any) {
+      console.error("COURSE SUGGESTION AI ERROR:", error);
+
+      throw new ApiError(
+        httpStatus.BAD_GATEWAY,
+        "Failed to generate AI course suggestions."
+      );
+    }
+
+    // Validate AI response
+    const aiMessage = completion?.choices?.[0]?.message;
+
+    if (!aiMessage) {
+      throw new ApiError(
+        httpStatus.BAD_GATEWAY,
+        "AI returned an empty response."
+      );
+    }
+
+    // Parse JSON response
+    const suggestions: AISuggestion[] = extractJsonFromMessage(aiMessage);
+
+    if (!Array.isArray(suggestions)) {
+      throw new ApiError(httpStatus.BAD_GATEWAY, "Invalid AI response format.");
+    }
+
+    if (!suggestions.length) {
+      throw new ApiError(httpStatus.NOT_FOUND, "No course suggestions found.");
+    }
+
+    // Filter invalid AI data
+    const validSuggestions = suggestions.filter(
+      (suggestion) =>
+        suggestion?.courseId &&
+        mongoose.Types.ObjectId.isValid(suggestion.courseId) &&
+        suggestion?.reason
+    );
+
+    if (!validSuggestions.length) {
+      throw new ApiError(
+        httpStatus.BAD_GATEWAY,
+        "AI returned invalid course suggestions."
+      );
+    }
+
+    // Create maps
+    const suggestionsReasonMap = new Map(
+      validSuggestions.map((s) => [String(s.courseId), s.reason])
+    );
+
+    const suggestedCourseIds = new Set(
+      validSuggestions.map((s) => String(s.courseId))
+    );
+
+    // Build final result
+    const result = courses
+      .filter((course) => suggestedCourseIds.has(String(course._id)))
+      .map((course) => {
+        const courseObj =
+          typeof course.toObject === "function" ? course.toObject() : course;
+
+        return {
+          ...courseObj,
+          reason: suggestionsReasonMap.get(String(course._id)),
+        };
+      });
+
+    if (!result.length) {
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        "No matching courses found from AI suggestions."
+      );
+    }
+
+    console.log("RETURNING RESULT");
+
+    return result;
+  } catch (error: any) {
+    console.error("GET AI SUGGESTIONS ERROR:", error);
+
+    // Already handled custom error
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    // MongoDB / Mongoose errors
+    if (error instanceof mongoose.Error) {
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Database operation failed."
+      );
+    }
+
+    // OpenAI / OpenRouter API errors
+    if (error?.status) {
+      switch (error.status) {
+        case 400:
+          throw new ApiError(httpStatus.BAD_REQUEST, "Invalid AI request.");
+
+        case 401:
+          throw new ApiError(
+            httpStatus.UNAUTHORIZED,
+            "AI API authentication failed."
+          );
+
+        case 429:
+          throw new ApiError(
+            httpStatus.TOO_MANY_REQUESTS,
+            "AI rate limit exceeded. Please try again later."
+          );
+
+        case 503:
+          throw new ApiError(
+            httpStatus.SERVICE_UNAVAILABLE,
+            "AI service is temporarily unavailable."
+          );
+
+        default:
+          throw new ApiError(
+            httpStatus.BAD_GATEWAY,
+            "AI service error occurred."
+          );
+      }
+    }
+
+    // Fallback
+    throw new ApiError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      "Something went wrong while getting AI suggestions."
+    );
+  }
 };
+
+export default getAISuggestions;
 
 export const CourseService = {
   insertIntoDb,

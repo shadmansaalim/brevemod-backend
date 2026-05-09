@@ -2,17 +2,30 @@
 import OpenAI from "openai";
 import config from "../config";
 
-const createClient = (apiKey: string) =>
-  new OpenAI({
+const createClient = (apiKey: string) => {
+  if (!apiKey) {
+    throw new Error("OpenRouter API key is missing.");
+  }
+
+  return new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",
     apiKey,
   });
+};
 
-export const openaiClients = [
-  createClient(config.openRouterApiKey as string),
-  createClient(config.openRouterApiKey2 as string),
-  createClient(config.openRouterApiKey3 as string),
-];
+const apiKeys = [
+  config.openRouterApiKey,
+  config.openRouterApiKey2,
+  config.openRouterApiKey3,
+].filter(Boolean);
 
-// Default client (key 1) for non-critical use
+if (!apiKeys.length) {
+  throw new Error(
+    "No OpenRouter API keys found. Please check environment variables."
+  );
+}
+
+export const openaiClients = apiKeys.map((key) => createClient(key as string));
+
+// Default client
 export const openai = openaiClients[0];
