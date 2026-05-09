@@ -310,7 +310,8 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
     );
 
     // Build final result
-    const result = courses
+    const allCourses = await Course.find({});
+    const result = allCourses
       .filter((course) => suggestedCourseIds.has(String(course._id)))
       .map((course) => {
         const courseObj =
