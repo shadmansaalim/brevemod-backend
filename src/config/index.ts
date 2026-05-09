@@ -26,5 +26,7 @@ export default {
     apiKey: process.env.CLOUDINARY_API_KEY,
     apiSecret: process.env.CLOUDINARY_API_SECRET,
   },
-  openRouterApiKey: process.env.OPENROUTER_API_KEY,
+  openRouterApiKey: process.env.OPENROUTER_API_KEY_1,
+  openRouterApiKey2: process.env.OPENROUTER_API_KEY_2,
+  openRouterApiKey3: process.env.OPENROUTER_API_KEY_3,
 };

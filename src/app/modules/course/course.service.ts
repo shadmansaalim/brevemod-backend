@@ -16,6 +16,7 @@ import { UserCourseRating } from "../userCourseRating/userCourseRating.model";
 import { IUserCourseRating } from "../userCourseRating/userCourseRating.interface";
 import { openai } from "../../../helpers/openRouter";
 import { extractJsonFromMessage } from "../../../helpers/extractJsonFromMessage";
+import { withApiKeyFallback } from "../../../helpers/withApiKeyFallback";
 
 const insertIntoDb = async (payload: ICourse): Promise<ICourse> => {
   return await Course.create(payload);
@@ -193,11 +194,41 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
     );
   }
 
+  const extractKeywords = async (jobDescription: string): Promise<string> => {
+    const completion = await withApiKeyFallback((client) =>
+      client.chat.completions.create({
+        model: "nvidia/nemotron-3-super-120b-a12b:free",
+        messages: [
+          {
+            role: "system",
+            content: "You are a keyword extraction assistant.",
+          },
+          {
+            role: "user",
+            content: `Extract a maximum of 5 most important technical skills or tools from the following job description.
+  Return ONLY a comma-separated list of keywords, nothing else. No explanation, no bullet points, no markdown.
+  
+  Job Description:
+  ${jobDescription}`,
+          },
+        ],
+      })
+    );
+
+    return completion.choices[0].message?.content?.trim() ?? jobDescription;
+  };
+
   // Get all courses
   const courses = await Course.find({});
 
   if (!courses.length) {
     throw new ApiError(httpStatus.NOT_FOUND, "No courses available.");
+  }
+
+  const keywords = await extractKeywords(payload.jobDescription);
+
+  if (!keywords) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Something went wrong");
   }
 
   // Format courses for the prompt
@@ -210,49 +241,62 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
     )
     .join("\n\n");
 
-  const prompt = `You are a career advisor. Based on the job description below, recommend the most relevant courses from the provided list.
+  const prompt = `You are a career advisor. Based on the required skills and keywords below, recommend the most relevant courses.
   
-    Job Description: ${payload.jobDescription}
-    
-    Available Courses: ${courseList}
-    
-    Instructions:
-    - Analyze the skills and requirements in the job description.
-    - Select a maximum of 3 most relevant courses only.
-    - Return your response as a JSON array using this exact structure:
-    [
-      {
-        "courseId": "<course _id>",
-        "reason": "<why this course is relevant to the job description>"
-      }
-    ]`;
+  Required Skills & Keywords: ${keywords}
+  
+  Available Courses: ${courseList}
+  
+  Instructions:
+  - Select a maximum of 3 most relevant courses only.
+  - Return ONLY a JSON array, no markdown, no explanation:
+  
+  [
+    {
+      "courseId": "<course _id>",
+      "reason": "<why this course matches the required skills>"
+    }
+  ]`;
 
-  const completion = await openai.chat.completions.create({
-    model: "z-ai/glm-4.5-air:free",
-    messages: [
-      {
-        role: "system",
-        content: "You are a career advisor that provides courses suggestions.",
-      },
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
-  });
+  const completion = await withApiKeyFallback((client) =>
+    client.chat.completions.create({
+      model: "nvidia/nemotron-3-super-120b-a12b:free",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a career advisor that provides courses suggestions.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    })
+  );
 
-  const suggestions: { courseId: string; reason: string }[] =
+  const suggestions: { courseId: Types.ObjectId; reason: string }[] =
     await extractJsonFromMessage(completion.choices[0].message);
 
-  // Map suggestions back to full course objects
-  const courseMap = new Map(courses.map((c) => [c._id.toString(), c]));
+  const suggestionsReasonMap = new Map(
+    suggestions.map((s) => [String(s.courseId), s.reason])
+  );
 
-  const result = suggestions
-    .filter((s) => courseMap.has(s.courseId))
-    .map((s) => ({
-      course: courseMap.get(s.courseId),
-      reason: s.reason,
-    }));
+  const suggestedCourseIds = new Set(
+    suggestions.map((s) => String(s.courseId))
+  );
+
+  const result = courses
+    .filter((course) => suggestedCourseIds.has(String(course._id)))
+    .map((course) => {
+      const courseObj =
+        typeof course.toObject === "function" ? course.toObject() : course;
+
+      return {
+        ...courseObj,
+        reason: suggestionsReasonMap.get(String(course._id)),
+      };
+    });
 
   return result;
 };
