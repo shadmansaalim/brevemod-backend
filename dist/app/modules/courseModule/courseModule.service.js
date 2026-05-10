@@ -231,7 +231,9 @@ const deleteContentFromCourseModule = (moduleId, contentId) => __awaiter(void 0,
             }
         }
         if (currentContentIndex === 0) {
-            newModuleData = yield courseModule_model_1.CourseModule.findOneAndDelete({ _id: moduleId });
+            newModuleData = (yield courseModule_model_1.CourseModule.findOneAndDelete({
+                _id: moduleId,
+            }));
             if (!newModuleData) {
                 throw new ApiError_1.default(http_status_1.default.BAD_REQUEST, "Failed to remove content.");
             }

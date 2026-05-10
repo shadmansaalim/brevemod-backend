@@ -1,20 +1,19 @@
 // Imports
-import { JwtPayload, Secret } from "jsonwebtoken";
+import { JwtPayload, Secret, SignOptions } from "jsonwebtoken";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 
 // Function to creat jwt token
 const createToken = (
-  payload: {
-    id: Types.ObjectId;
-    role: string;
-  },
+  payload: { id: Types.ObjectId; role: string },
   secret: Secret,
   expiresIn: string
 ) => {
-  return jwt.sign(payload, secret, {
-    expiresIn,
-  });
+  const options: SignOptions = {
+    expiresIn: expiresIn as SignOptions["expiresIn"],
+  };
+
+  return jwt.sign(payload, secret, options);
 };
 
 // Function to verify jwt token

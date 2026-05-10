@@ -342,7 +342,9 @@ const deleteContentFromCourseModule = async (
     }
 
     if (currentContentIndex === 0) {
-      newModuleData = await CourseModule.findOneAndDelete({ _id: moduleId });
+      newModuleData = (await CourseModule.findOneAndDelete({
+        _id: moduleId,
+      })) as unknown as ICourseModule | null;
 
       if (!newModuleData) {
         throw new ApiError(httpStatus.BAD_REQUEST, "Failed to remove content.");

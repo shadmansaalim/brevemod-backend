@@ -120,7 +120,7 @@ const updateOneById = async (
 };
 
 const deleteOneById = async (id: string): Promise<IUser | null> => {
-  return await User.findOneAndDelete({ _id: id });
+  return (await User.findOneAndDelete({ _id: id })) as unknown as IUser | null;
 };
 
 export const UserService = {

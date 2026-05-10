@@ -80,7 +80,9 @@ const deleteOneById = async (id: string): Promise<ICourse | null> => {
     );
   }
 
-  return await Course.findOneAndDelete({ _id: id });
+  return (await Course.findOneAndDelete({
+    _id: id,
+  })) as unknown as ICourse | null;
 };
 
 const addCourseRating = async (
@@ -342,11 +344,8 @@ Instructions:
     const result = courses
       .filter((course) => suggestedCourseIds.has(String(course._id)))
       .map((course) => {
-        const courseObj =
-          typeof course.toObject === "function" ? course.toObject() : course;
-
         return {
-          ...courseObj,
+          ...course,
           reason: suggestionsReasonMap.get(String(course._id)),
         };
       });

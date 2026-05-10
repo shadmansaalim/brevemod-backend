@@ -94,7 +94,7 @@ const updateOneById = (id, payload) => __awaiter(void 0, void 0, void 0, functio
     });
 });
 const deleteOneById = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield user_model_1.User.findOneAndDelete({ _id: id });
+    return (yield user_model_1.User.findOneAndDelete({ _id: id }));
 });
 exports.UserService = {
     insertIntoDb,

@@ -57,7 +57,9 @@ const deleteOneById = (id) => __awaiter(void 0, void 0, void 0, function* () {
     if (anyPurchase) {
         throw new ApiError_1.default(http_status_1.default.NOT_ACCEPTABLE, "There are students who purchased this course for which we cannot remove it from our system.");
     }
-    return yield course_model_1.Course.findOneAndDelete({ _id: id });
+    return (yield course_model_1.Course.findOneAndDelete({
+        _id: id,
+    }));
 });
 const addCourseRating = (authUserId, courseId, rating) => __awaiter(void 0, void 0, void 0, function* () {
     // Finding user
@@ -234,8 +236,7 @@ Instructions:
         const result = courses
             .filter((course) => suggestedCourseIds.has(String(course._id)))
             .map((course) => {
-            const courseObj = typeof course.toObject === "function" ? course.toObject() : course;
-            return Object.assign(Object.assign({}, courseObj), { reason: suggestionsReasonMap.get(String(course._id)) });
+            return Object.assign(Object.assign({}, course), { reason: suggestionsReasonMap.get(String(course._id)) });
         });
         if (!result.length) {
             throw new ApiError_1.default(http_status_1.default.NOT_FOUND, "No matching courses found from AI suggestions.");
