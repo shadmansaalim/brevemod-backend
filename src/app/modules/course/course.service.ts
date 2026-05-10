@@ -14,7 +14,6 @@ import httpStatus from "http-status";
 import { Purchase } from "../purchase/purchase.model";
 import { UserCourseRating } from "../userCourseRating/userCourseRating.model";
 import { IUserCourseRating } from "../userCourseRating/userCourseRating.interface";
-import { openai } from "../../../helpers/openRouter";
 import { extractJsonFromMessage } from "../../../helpers/extractJsonFromMessage";
 import { withApiKeyFallback } from "../../../helpers/withApiKeyFallback";
 
@@ -192,6 +191,13 @@ const getUserCourseRating = async (
 };
 
 // This will give suggestions to the user which courses to do for the given job description
+const FREE_MODELS = [
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "z-ai/glm-4.5-air:free",
+  "poolside/laguna-m.1:free",
+  "openai/gpt-oss-120b:free",
+];
+
 const getAISuggestions = async (payload: { jobDescription: string }) => {
   try {
     // Validate payload
@@ -203,7 +209,7 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
     }
 
     // Get all courses
-    const courses = await Course.find({}).select("title description");
+    const courses = await Course.find({}).lean();
 
     if (!courses.length) {
       throw new ApiError(httpStatus.NOT_FOUND, "No courses available.");
@@ -214,54 +220,77 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
       .map(
         (course, index) =>
           `${index + 1}. ID: ${course._id}
-   Title: ${course.title}
-   Description: ${course.description}`
+Title: ${course.title}
+Description: ${course.description}`
       )
       .join("\n\n");
 
     const prompt = `You are a career advisor. Based on the job description below, recommend the most relevant courses from the provided list.
-  
-      Job Description: ${payload.jobDescription}
-      
-      Available Courses: ${courseList}
-      
-      Instructions:
-      - Analyze the skills and requirements in the job description.
-      - Select a maximum of 3 most relevant courses only.
-      - Return your response as a JSON array using this exact structure:
-      [
-        {
-          "courseId": "<course _id>",
-          "reason": "<why this course is relevant to the job description>"
+
+Job Description: ${payload.jobDescription}
+
+Available Courses:
+${courseList}
+
+Instructions:
+- Analyze the skills and requirements in the job description.
+- Select a maximum of 3 most relevant courses only.
+- Return your response as a JSON array using this exact structure:
+
+[
+  {
+    "courseId": "<course _id>",
+    "reason": "<why this course is relevant to the job description>"
+  }
+]`;
+
+    let completion: any = null;
+    let lastError: any = null;
+
+    // Try models one by one if 504 occurs
+    for (const model of FREE_MODELS) {
+      try {
+        console.log(`Trying AI model: ${model}`);
+
+        completion = await withApiKeyFallback((client) =>
+          client.chat.completions.create({
+            model,
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are a career advisor that provides course suggestions.",
+              },
+              {
+                role: "user",
+                content: prompt,
+              },
+            ],
+          })
+        );
+
+        // Success → break loop
+        console.log(`SUCCESS WITH MODEL: ${model}`);
+        break;
+      } catch (error: any) {
+        console.error(`MODEL FAILED: ${model}`, error);
+
+        lastError = error;
+
+        // If 504 → try next model
+        if (error?.status === 504) {
+          console.log("504 detected. Trying next model...");
+          continue;
         }
-      ]`;
 
-    let completion;
+        // If not 504 → immediately throw
+        throw error;
+      }
+    }
 
-    try {
-      completion = await withApiKeyFallback((client) =>
-        client.chat.completions.create({
-          model: "nvidia/nemotron-3-super-120b-a12b:free",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are a career advisor that provides courses suggestions.",
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-        })
-      );
-    } catch (error: any) {
-      console.error("COURSE SUGGESTION AI ERROR:", error);
-
-      throw new ApiError(
-        httpStatus.BAD_GATEWAY,
-        "Failed to generate AI course suggestions."
-      );
+    // If no model succeeded
+    if (!completion) {
+      throw lastError || new Error("All AI models failed.");
     }
 
     // Validate AI response
@@ -310,8 +339,7 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
     );
 
     // Build final result
-    const allCourses = await Course.find({});
-    const result = allCourses
+    const result = courses
       .filter((course) => suggestedCourseIds.has(String(course._id)))
       .map((course) => {
         const courseObj =
@@ -329,8 +357,6 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
         "No matching courses found from AI suggestions."
       );
     }
-
-    console.log("RETURNING RESULT");
 
     return result;
   } catch (error: any) {
@@ -371,6 +397,12 @@ const getAISuggestions = async (payload: { jobDescription: string }) => {
           throw new ApiError(
             httpStatus.SERVICE_UNAVAILABLE,
             "AI service is temporarily unavailable."
+          );
+
+        case 504:
+          throw new ApiError(
+            httpStatus.GATEWAY_TIMEOUT,
+            "All AI models are currently overloaded."
           );
 
         default:
